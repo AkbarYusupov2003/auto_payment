@@ -11,7 +11,9 @@ urlpatterns = [
     path("get-verify-code/", views.CardGetVerifyCode.as_view()),
     path("verify/", views.CardVerify.as_view()),
     #
-    path("card/create/", views.CardCreateAPIView.as_view()),
+    # create
+    # update with activation
+
     path("card/<int:pk>/", views.CardUpdateAPIView.as_view()),
     # TODO path("card/<int:pk>/", views.CardUpdateAPIView.as_view()),
     # TODO path("card-list/", views.CardListAPIView.as_view()),

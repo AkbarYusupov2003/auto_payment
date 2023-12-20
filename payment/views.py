@@ -11,8 +11,7 @@ from rest_framework.response import Response
 
 from payment import models
 from payment import serializers
-from payment.utils import data_extractor
-from payment.utils import etc
+from payment.utils import data_extractor, token, etc
 
 
 # Move to Frontend
@@ -73,49 +72,46 @@ class CardVerify(View):
 
 # create with fields: account_id, card_id, token, additional_data (is_active=False)
 # updatable fields: additional_data, auto_payment, is_active
-# class CardCreateAPIView(generics.CreateAPIView):
-#     serializer_class = serializers.CardCreateSerializer
-#
-#     def post(self, request, *args, **kwargs):
-#         account_id = 1 # TODO
-#         account_has_less_than_10_cards = True # TODO
-#         if account_id == json.loads(request.body).get("account_id") and account_has_less_than_10_cards:
-#             pass
-#         return super().post(request, *args, **kwargs)
 
 
 class CardCreateAPIView(APIView):
-    serializer_class = serializers.CardCreateSerializer
+
+    def post(self, request, *args, **kwargs):
+        try:
+            splay_data = token.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
+            account_id = int(splay_data.get("user_id"))
+            # check if account account_has_less_than_10_cards
+        except:
+            return Response({"error": "token authorization error"}, status=401)
+        return models.Card.objects.create(account_id=account_id).pk
+
+
+class CardUpdateAPIView(APIView):
 
     def post(self, request, *args, **kwargs):
         data = json.loads(request.body)
         try:
             account_id = int(data["account_id"])
             card_id = int(data["card_id"])
-            token = data["token"]
+            token = str(data["token"])
             additional_data = dict(data["additional_data"])
         except:
             return Response({"Data validation error"}, status=400)
 
         # check if account exists
         # check if token exists
-        # check if account account_has_less_than_10_cards
+
         account = get_object_or_404(models.Account, pk=account_id)
-        etc.is_paycom_card_exists()
+        if etc.is_paycom_card_exists(card_id, token):
+            # TODO UPDATE EXISTINS CARD
+            pass
+            # models.Card.objects.create(
+            #     pk=card_id, account_id=account_id,
+            # )
 
         # create card
 
         return Response({"message": "The card was successfully created"}, status=201)
-        # account_id = 1 # TODO
-        # account_has_less_than_10_cards = True # TODO
-        # if account_id == json.loads(request.body).get("account_id") and account_has_less_than_10_cards:
-        #     pass
-        # return super().post(request, *args, **kwargs)
-
-
-class CardUpdateAPIView(generics.RetrieveUpdateAPIView):
-    queryset = models.Card.objects.all()
-    serializer_class = serializers.CardUpdateSerializer
 
 
 class CardListAPIView(generics.ListAPIView):

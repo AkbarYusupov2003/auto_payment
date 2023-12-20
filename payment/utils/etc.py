@@ -1,4 +1,3 @@
-import datetime
 from payment.utils import data_extractor
 from payment.utils import receipts
 from payment import models
@@ -14,7 +13,7 @@ def is_paycom_card_exists(card_id, token):
         }
     }
     response = data_extractor.get_data(body, secured=True)
-    print("is_paycom_card_exists RESPONSE", response)
+    print("is_paycom_card_exists", response)
     if response.get("result"):
         return True
     else:
