@@ -87,14 +87,6 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.AllowAny",
         # "rest_framework.permissions.IsAuthenticated",
     ),
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ),
-}
-
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
 }
 
 CORS_ALLOW_ALL_ORIGINS = True

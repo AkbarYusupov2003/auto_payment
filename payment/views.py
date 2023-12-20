@@ -5,7 +5,7 @@ from django.shortcuts import HttpResponse, get_object_or_404
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from rest_framework import generics
+from rest_framework import generics, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -37,7 +37,7 @@ class MainView(View):
 
 
 class CardGetVerifyCode(View):
-    
+
     def get(self, request, *args, **kwargs):
         card = models.Card.objects.all().last()
         body = {
@@ -53,7 +53,7 @@ class CardGetVerifyCode(View):
 
 
 class CardVerify(View):
-    
+
     def get(self, request, *args, **kwargs):
         card = models.Card.objects.all().last()
         body = {
@@ -70,46 +70,55 @@ class CardVerify(View):
 # Move to Frontend ended
 
 
-# create with fields: account_id, card_id, token, additional_data (is_active=False)
-# updatable fields: additional_data, auto_payment, is_active
-
-
 class CardCreateAPIView(APIView):
+    authentication_classes = ()
+    permission_classes = (permissions.AllowAny,)
 
     def post(self, request, *args, **kwargs):
-        try:
-            splay_data = token.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
-            account_id = int(splay_data.get("user_id"))
-            # check if account account_has_less_than_10_cards
-        except:
-            return Response({"error": "token authorization error"}, status=401)
-        return models.Card.objects.create(account_id=account_id).pk
+        # try:
+        #     splay_data = token.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
+        #     account_id = json.loads(request.body)["account_id"]
+        #     if not (account_id == int(splay_data["user_id"])):
+        #         raise Exception("")
+        # except Exception as e:
+        #     print("exception", e)
+        #     return Response({"error": "token, account_id does not match"}, status=401)
+        account_id = json.loads(request.body)["account_id"]
+        if models.Card.objects.filter(account_id=account_id).count() < 10:
+            card = models.Card.objects.create(account_id=account_id)
+            return Response({"message": "The card was successfully created", "id": card.pk}, status=201)
+        else:
+            return Response({"error": "Account already has 10 cards"}, status=405)
 
 
+# create with fields: account_id, card_id, token, additional_data (is_active=False)
+# updatable fields: additional_data, auto_payment, is_active
 class CardUpdateAPIView(APIView):
 
     def post(self, request, *args, **kwargs):
         data = json.loads(request.body)
+
         try:
             account_id = int(data["account_id"])
+            splay_data = token.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
+            if not (int(splay_data.get("user_id")) == account_id):
+                raise Exception("")
             card_id = int(data["card_id"])
-            token = str(data["token"])
+            card_token = str(data["token"])
             additional_data = dict(data["additional_data"])
-        except:
+        except Exception as e:
+            print("EXCEPTION", e)
             return Response({"Data validation error"}, status=400)
 
-        # check if account exists
         # check if token exists
 
         account = get_object_or_404(models.Account, pk=account_id)
-        if etc.is_paycom_card_exists(card_id, token):
+        if etc.is_paycom_card_exists(card_id, card_token):
             # TODO UPDATE EXISTINS CARD
             pass
             # models.Card.objects.create(
             #     pk=card_id, account_id=account_id,
             # )
-
-        # create card
 
         return Response({"message": "The card was successfully created"}, status=201)
 
@@ -123,13 +132,13 @@ class CardListAPIView(generics.ListAPIView):
 # TODO AccountCardList
 
 class BuySubscriptionAPIView(APIView):
-    
+
     def post(self, request, *args, **kwargs):
         body = json.loads(request.body)
         sub_id = body.get("sub_id")
         account_id = body.get("account_id")
         card_id = body.get("card_id")
-        
+
         if type(sub_id) == int and type(account_id) == int and type(card_id) == int:
             get_object_or_404(models.Account, pk=account_id)
             get_object_or_404(models.Card, pk=card_id, account_id=account_id)
