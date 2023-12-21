@@ -12,10 +12,13 @@ from payment.utils import receipts
 def daily_subscription_task():
     # TODO Deleting old subs - ??? models.IntermediateSubscription.objects.filter(date_of_debiting__date__lt=today).delete()
     today = datetime.datetime.now()
-    to_extend = models.IntermediateSubscription.objects.filter(auto_payment=True, date_of_debiting=today).select_related("subscription_type", "user")
+    to_extend = models.IntermediateSubscription.objects.filter(
+        auto_payment=True, date_of_debiting=today
+    ).select_related("subscription_type", "user")
     extended = []
     tomorrow = models.IntermediateSubscription.objects.filter(date_of_debiting=today + datetime.timedelta(days=1))
     day_after_tomorrow = models.IntermediateSubscription.objects.filter(date_of_debiting=today + datetime.timedelta(days=2))
+
     for instance in to_extend:
         print("instance", instance)
 
