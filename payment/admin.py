@@ -5,7 +5,7 @@ from payment import models
 
 @admin.register(models.Card)
 class CardAdmin(admin.ModelAdmin):
-    list_display = ("pk", "account_id", "additional_data", "created_at", "updated_at", "is_active")
+    list_display = ("pk", "account_id", "additional_data", "created_at", "updated_at", "is_verified")
 
 
 @admin.register(models.Receipt)

@@ -11,14 +11,14 @@ from rest_framework.response import Response
 
 from payment import models
 from payment import serializers
-from payment.utils import data_extractor, token, etc
+from payment.utils import data_extractor, tokens, etc
 
 
 # Move to Frontend
 class MainView(View):
     # TODO for Frontend: generate id -> from user_id...
     def get(self, request, *args, **kwargs):
-        card_id = 1 # models.Card.objects.all().last().pk + 1
+        card_id =7 # models.Card.objects.all().last().pk + 1
         body = {
             "id": card_id,
             "method": "cards.create",
@@ -31,9 +31,13 @@ class MainView(View):
         print("Main response", response)
         card_id = response.get("id")
         data = response.get("result").get("card")
-        token = data.pop("token", "not exists")
-        models.Card.objects.create(pk=card_id, account_id=1, token=token, additional_data=data)
+        token = response.get("result").get("card")
+        print(response.get("result"))
+        # models.Card.objects.create(pk=card_id, account_id=1, token=token, additional_data=data)
         return HttpResponse(f"token: {token}")
+
+
+TOKEN = "6583cadf448046c31012c121_P0Q97yhAWt5EGSdj5Tjt64cSWwzjGoNvdD6OhrFGpG2qdZDB09jkTZUoCKN5JVwGEVq4u1rYYusdRgnUtj8vPApwCPQdGGkAcDoUDmTc5ZwdFjm34Qdpr3Vz4Tmd00BiRj7r5P5sY0cFbdyq0CKsagpKroOmYRmpAmCYDS2Jb8FmdtZA189obn9RtdFso61h7IUVbhjM8mKhNfGJCtyrIr2IE5IE3p5K2PYVJTtW3ki6EwKDOEJs0EA6EPHiQec7uoBEg87tcfyUBJNkpc87hmA0H3wgca8v1rtFXAn7cTjpsC4gFAq33kXJD7hCKVK3o4rg8Pz2iAMbBTfjKtkGUjfXBiPaB6TcpSiu4oj38hXU8WYoQeDkN4Qr1joBge7KFCnmWF"
 
 
 class CardGetVerifyCode(View):
@@ -44,7 +48,7 @@ class CardGetVerifyCode(View):
             "id": card.pk,
             "method": "cards.get_verify_code",
             "params": {
-                "token": card.token
+                "token": TOKEN
             }
         }
         response = data_extractor.get_data(body)
@@ -60,7 +64,7 @@ class CardVerify(View):
             "id": card.pk,
             "method": "cards.verify",
             "params": {
-                "token": card.token,
+                "token": TOKEN,
                 "code": "666666"
             }
         }
@@ -76,7 +80,7 @@ class CardCreateAPIView(APIView):
 
     def post(self, request, *args, **kwargs):
         # try:
-        #     splay_data = token.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
+        #     splay_data = tokens.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
         #     account_id = json.loads(request.body)["account_id"]
         #     if not (account_id == int(splay_data["user_id"])):
         #         raise Exception("")
@@ -91,8 +95,7 @@ class CardCreateAPIView(APIView):
             return Response({"error": "Account already has 10 cards"}, status=405)
 
 
-# create with fields: account_id, card_id, token, additional_data (is_active=False)
-# updatable fields: additional_data, auto_payment, is_active
+# create with fields: account_id, card_id, is_verified=False
 class CardUpdateAPIView(APIView):
 
     def post(self, request, *args, **kwargs):
@@ -100,27 +103,34 @@ class CardUpdateAPIView(APIView):
 
         try:
             account_id = int(data["account_id"])
-            splay_data = token.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
-            if not (int(splay_data.get("user_id")) == account_id):
-                raise Exception("")
-            card_id = int(data["card_id"])
+            # splay_data = tokens.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
+            # if not (int(splay_data.get("user_id")) == account_id):
+            #     raise Exception("")
+            card_id = int(self.kwargs["card_id"])
             card_token = str(data["token"])
             additional_data = dict(data["additional_data"])
+            auto_payment = data.get("auto_payment")
         except Exception as e:
-            print("EXCEPTION", e)
-            return Response({"Data validation error"}, status=400)
+            return Response({"error": "Data validation error"}, status=400)
 
-        # check if token exists
-
-        account = get_object_or_404(models.Account, pk=account_id)
-        if etc.is_paycom_card_exists(card_id, card_token):
-            # TODO UPDATE EXISTINS CARD
-            pass
-            # models.Card.objects.create(
-            #     pk=card_id, account_id=account_id,
-            # )
-
-        return Response({"message": "The card was successfully created"}, status=201)
+        get_object_or_404(models.Account, pk=account_id)
+        cards = models.Card.objects.filter(pk=card_id, account_id=account_id)
+        exists = False
+        for card in cards:
+            if etc.is_paycom_card_exists(card.pk, card_token):
+                if not card.is_verified:
+                    card.token = card_token
+                    card.additional_data = additional_data
+                    card.is_verified = True
+                if isinstance(auto_payment, bool):
+                    card.auto_payment = auto_payment
+                    card.save()
+                exists = True
+                break
+        if exists:
+            return Response({"message": "The card was successfully updated"}, status=200)
+        else:
+            return Response({"error": "Card not found"}, status=404)
 
 
 class CardListAPIView(generics.ListAPIView):
@@ -138,7 +148,7 @@ class BuySubscriptionAPIView(APIView):
         sub_id = body.get("sub_id")
         account_id = body.get("account_id")
         card_id = body.get("card_id")
-
+        # TODO isinstance
         if type(sub_id) == int and type(account_id) == int and type(card_id) == int:
             get_object_or_404(models.Account, pk=account_id)
             get_object_or_404(models.Card, pk=card_id, account_id=account_id)

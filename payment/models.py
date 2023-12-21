@@ -16,7 +16,7 @@ class Card(models.Model):
     created_at = models.DateTimeField("Создано", auto_now_add=True)
     updated_at = models.DateTimeField("Обновлено", auto_now=True)
     auto_payment = models.BooleanField("Авто оплата", default=True)
-    is_active = models.BooleanField("Активность", default=False)
+    is_verified = models.BooleanField("Верифицирована", default=False)
 
     class Meta:
         verbose_name = "Карта"

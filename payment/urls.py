@@ -14,7 +14,7 @@ urlpatterns = [
     # create
     # update with activation
     path("card/create/", views.CardCreateAPIView.as_view()),
-    path("card/<int:pk>/", views.CardUpdateAPIView.as_view()),
+    path("card/<int:card_id>/", views.CardUpdateAPIView.as_view()),
     # TODO path("card/<int:pk>/", views.CardUpdateAPIView.as_view()),
     # TODO path("card-list/", views.CardListAPIView.as_view()),
     
