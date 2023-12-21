@@ -139,11 +139,9 @@ class CardListAPIView(generics.ListAPIView):
     serializer_class = serializers.CardListSerializer
 
     def get_queryset(self):
+        account_id = self.kwargs["account_id"]
+        return models.Card.objects.filter(account_id=account_id)
 
-        return models.Card.objects.all()
-
-
-# TODO AccountCardList
 
 class BuySubscriptionAPIView(APIView):
 
