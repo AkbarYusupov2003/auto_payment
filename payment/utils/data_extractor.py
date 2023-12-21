@@ -10,15 +10,11 @@ def get_data(body, secured=False):
         headers = {"X-Auth": f"{settings.PAYCOM_CASHBOX_ID}:{settings.PAYCOM_CASHBOX_KEY}"}
     else:
         headers = {"X-Auth": settings.PAYCOM_CASHBOX_ID}
-    print("get_data")
     while count <= 3:
-        # try:
+        try:
             response = requests.post(settings.PAYCOM_API_URL, json=body, headers=headers)
-            print("RR", response)
             result = response.json()
-            print("GET DATA", response)
             break
-        # except IOError as e:
-        #     print("error", e)
-        #     count += 1
+        except IOError as e:
+            count += 1
     return result

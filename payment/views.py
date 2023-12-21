@@ -108,15 +108,18 @@ class CardUpdateAPIView(APIView):
 
     def post(self, request, *args, **kwargs):
         try:
+            account_id = int(tokens.get_data_from_token(request.META["HTTP_AUTHORIZATION"]).get("user_id"))
+        except:
+            return Response({"error": ""}, status=401)
+
+        try:
             data = json.loads(request.body)
-            splay_data = tokens.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
-            account_id = int(splay_data.get("user_id"))
             card_id = int(self.kwargs["card_id"])
             token = str(data["token"])
             additional_data = dict(data["additional_data"])
             auto_payment = data.get("auto_payment")
         except:
-            return Response({"error": "Data validation error"}, status=400)
+            return Response({"error": "Data validation error"}, status=401)
 
         get_object_or_404(models.Account, pk=account_id)
         card = get_object_or_404(models.Card, pk=card_id, account_id=account_id)
@@ -164,14 +167,11 @@ class SubscriptionPaymentAPIView(APIView):
             data = json.loads(request.body)
             splay_data = tokens.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
             account_id = int(splay_data.get("user_id"))
-            card = models.Card.objects.get(
-                pk=int(data["card_id"]), account_id=account_id, is_verified=True
-            )
-            subscription = models.Subscription.objects.get(
-                pk=int(data["sub_id"])
-            )
         except:
             return Response({"error": ""}, status=401)
+        account_id = 1 # TODO REMOVE
+        card = get_object_or_404(models.Card, pk=int(data["card_id"]), account_id=account_id, is_verified=True)
+        subscription = get_object_or_404(models.Subscription, pk=int(data["sub_id"]))
         # -----------------------------------------------------------------------------------------
         today = datetime.datetime.today()
         instance = models.IntermediateSubscription.objects.filter(
