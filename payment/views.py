@@ -120,7 +120,6 @@ class CardUpdateAPIView(APIView):
             if etc.is_paycom_card_exists(card.pk, card_token):
                 if not card.is_verified:
                     card.token = card_token
-                    #
                     card.number = additional_data.get("number")
                     card.expiration = additional_data.get("expire")
                     card.additional_data = additional_data

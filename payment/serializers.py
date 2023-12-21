@@ -7,4 +7,4 @@ class CardListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Card
-        fields = ("pk", "token", "is_verified", "auto_payment")
+        fields = ("pk", "token", "number", "expire", "is_verified", "auto_payment", "updated_at")
