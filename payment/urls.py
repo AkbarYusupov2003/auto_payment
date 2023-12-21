@@ -15,5 +15,5 @@ urlpatterns = [
     path("cards/create/", views.CardCreateAPIView.as_view()),
     path("cards/<int:card_id>/", views.CardUpdateAPIView.as_view()),
     #
-    path("buy-subscription/", views.BuySubscriptionAPIView.as_view()),
+    path("subscription-payment/", views.SubscriptionPaymentAPIView.as_view()),
 ]
