@@ -21,7 +21,6 @@ def is_paycom_card_exists(card_id, token):
 
 
 def pay_by_card(card, price, info, auto_paid=False):
-    # TODO FIX EROR IF 2 IS VERIFIED AND 1 OF THEM DOESNT HAVE ENOUGH MONEY
     print("pay_by_card")
     account_id = card.account_id
     print("Card", card)
@@ -38,5 +37,6 @@ def pay_by_card(card, price, info, auto_paid=False):
                 receipt.status = models.Receipt.StatusChoices.PAID
                 receipt.auto_paid = auto_paid
                 receipt.save()
+                # TODO CREATE TRANSACTION HERE
                 return True
     return False
