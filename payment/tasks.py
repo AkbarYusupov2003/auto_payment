@@ -38,7 +38,7 @@ def daily_subscription_task():
             info = instance.subscription_type.title_ru
             paid = False
             for card in cards:
-                if etc.pay_by_card(card, price, info):
+                if etc.pay_by_card(card, price, info, auto_paid=True):
                     paid = True
                     instance.date_of_debiting += datetime.timedelta(days=30)
                     instance.save()
