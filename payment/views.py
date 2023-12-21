@@ -18,7 +18,7 @@ from payment.utils import data_extractor, tokens, etc
 class MainView(View):
     # TODO for Frontend: generate id -> from user_id...
     def get(self, request, *args, **kwargs):
-        card_id = 7 # models.Card.objects.all().last().pk + 1
+        card_id = 8 # models.Card.objects.all().last().pk + 1
         body = {
             "id": card_id,
             "method": "cards.create",
@@ -29,23 +29,19 @@ class MainView(View):
         }
         response = data_extractor.get_data(body)
         print("Main response", response)
-        card_id = response.get("id")
         data = response.get("result").get("card")
-        token = response.get("result").get("card").get("token")
-        print(response.get("result"))
-        # models.Card.objects.create(pk=card_id, account_id=1, token=token, additional_data=data)
         return HttpResponse(f"data: {data}")
 
 
-TOKEN = "6583d8a4448046c31012c123_E0i0hYKJ8tT5BMJUzvm6ixe8DXewezWjsUr6StNMQH1NK7r3cOgeBwSTotauq97VWyNfty3OTMz3mJNG42g0GjfpYPHWJb5PaQ3EGU0EZYNj8nhFggfuQcuf2YpDie2rfzKoVaUtmGankcIFmCBBwAPbWnNNaUNJMzfmwgkjyJxuVvdEUDRz8N5fEYkpctuhKgzsy9Ir9VhxG4JHX2tBb6rRPg4uQPwRnUwpvdPz0YnptKnOCNti19emxecjzUBYWFQagBRxKTqd1N8tjoOBzBogrzIMjDaqnROyBr9g0JBPr3DRjVEFY6b1gcpiQv1oh2smwmqYmMQujh1Ozwcdx5ritSvT0waH6z9TjbjResd1ZJc6H99QQoYBuZZ1qv8bV18nOn"
+TOKEN = "6583f789448046c31012c12d_FQoSBOsW06JD4hnIJgUMSIy94oK2MZ2og6HVn8Vu7cKYxppqQVTwNkOQ7GioDqfEFCHh9J0GBoeibWYqyRHvZ2USCn22RWXCx3u8jtxaaBvrEsZKPS15xkajgoA9ibpXUXFqzvYsvXbaq7pRFk6nUgFvrraRr1uHgxHutVIjJBMGDqImnYCcMS3PUJFo0bJ8TtAOIrFWIK8BvunmBhWkkCxvzFXaE8kjsCRa6jH0fNImPXuDXr8vTEFe9YRWEa4q6ODE9PX87ZDBhMJN2jdszMeyfBJBK5TouBZpf6sPmvErjzcOY0mFc6neWOkeBzY3byC4byHbutn0k2xkzEQ0m9kttF7Zm0GZ5w9CjfrX9nyBKMnp0W6He4gxwI1C42z4AtmWDS"
+PK = 8
 
 
 class CardGetVerifyCode(View):
 
     def get(self, request, *args, **kwargs):
-        card = models.Card.objects.all().last()
         body = {
-            "id": card.pk,
+            "id": PK,
             "method": "cards.get_verify_code",
             "params": {
                 "token": TOKEN
@@ -59,9 +55,8 @@ class CardGetVerifyCode(View):
 class CardVerify(View):
 
     def get(self, request, *args, **kwargs):
-        card = models.Card.objects.all().last()
         body = {
-            "id": card.pk,
+            "id": PK,
             "method": "cards.verify",
             "params": {
                 "token": TOKEN,
@@ -121,7 +116,7 @@ class CardUpdateAPIView(APIView):
             card_token = str(data["token"])
             additional_data = dict(data["additional_data"])
             auto_payment = data.get("auto_payment")
-        except Exception as e:
+        except:
             return Response({"error": "Data validation error"}, status=400)
 
         get_object_or_404(models.Account, pk=account_id)
@@ -132,7 +127,7 @@ class CardUpdateAPIView(APIView):
                 if not card.is_verified:
                     card.token = card_token
                     card.number = additional_data.get("number")
-                    card.expiration = additional_data.get("expire")
+                    card.expire = additional_data.get("expire")
                     card.additional_data = additional_data
                     card.is_verified = True
                 if isinstance(auto_payment, bool):
