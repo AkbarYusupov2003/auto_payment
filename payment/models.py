@@ -12,11 +12,15 @@ langs = (
 class Card(models.Model):
     account_id = models.PositiveIntegerField("ID Аккаунта")
     token = models.CharField("Токен", max_length=512)
+    #
+    number = models.CharField("Номер", max_length=32, null=True)
+    expire = models.CharField("Срок истечения", max_length=16, null=True)
     additional_data = models.JSONField("Дополнительная информация", default=dict)
-    created_at = models.DateTimeField("Создано", auto_now_add=True)
-    updated_at = models.DateTimeField("Обновлено", auto_now=True)
+    #
     auto_payment = models.BooleanField("Авто оплата", default=True)
     is_verified = models.BooleanField("Верифицирована", default=False)
+    created_at = models.DateTimeField("Создано", auto_now_add=True)
+    updated_at = models.DateTimeField("Обновлено", auto_now=True)
 
     class Meta:
         verbose_name = "Карта"

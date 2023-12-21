@@ -18,7 +18,7 @@ from payment.utils import data_extractor, tokens, etc
 class MainView(View):
     # TODO for Frontend: generate id -> from user_id...
     def get(self, request, *args, **kwargs):
-        card_id =7 # models.Card.objects.all().last().pk + 1
+        card_id = 7 # models.Card.objects.all().last().pk + 1
         body = {
             "id": card_id,
             "method": "cards.create",
@@ -31,13 +31,13 @@ class MainView(View):
         print("Main response", response)
         card_id = response.get("id")
         data = response.get("result").get("card")
-        token = response.get("result").get("card")
+        token = response.get("result").get("card").get("token")
         print(response.get("result"))
         # models.Card.objects.create(pk=card_id, account_id=1, token=token, additional_data=data)
-        return HttpResponse(f"token: {token}")
+        return HttpResponse(f"data: {data}")
 
 
-TOKEN = "6583cadf448046c31012c121_P0Q97yhAWt5EGSdj5Tjt64cSWwzjGoNvdD6OhrFGpG2qdZDB09jkTZUoCKN5JVwGEVq4u1rYYusdRgnUtj8vPApwCPQdGGkAcDoUDmTc5ZwdFjm34Qdpr3Vz4Tmd00BiRj7r5P5sY0cFbdyq0CKsagpKroOmYRmpAmCYDS2Jb8FmdtZA189obn9RtdFso61h7IUVbhjM8mKhNfGJCtyrIr2IE5IE3p5K2PYVJTtW3ki6EwKDOEJs0EA6EPHiQec7uoBEg87tcfyUBJNkpc87hmA0H3wgca8v1rtFXAn7cTjpsC4gFAq33kXJD7hCKVK3o4rg8Pz2iAMbBTfjKtkGUjfXBiPaB6TcpSiu4oj38hXU8WYoQeDkN4Qr1joBge7KFCnmWF"
+TOKEN = "6583d8a4448046c31012c123_E0i0hYKJ8tT5BMJUzvm6ixe8DXewezWjsUr6StNMQH1NK7r3cOgeBwSTotauq97VWyNfty3OTMz3mJNG42g0GjfpYPHWJb5PaQ3EGU0EZYNj8nhFggfuQcuf2YpDie2rfzKoVaUtmGankcIFmCBBwAPbWnNNaUNJMzfmwgkjyJxuVvdEUDRz8N5fEYkpctuhKgzsy9Ir9VhxG4JHX2tBb6rRPg4uQPwRnUwpvdPz0YnptKnOCNti19emxecjzUBYWFQagBRxKTqd1N8tjoOBzBogrzIMjDaqnROyBr9g0JBPr3DRjVEFY6b1gcpiQv1oh2smwmqYmMQujh1Ozwcdx5ritSvT0waH6z9TjbjResd1ZJc6H99QQoYBuZZ1qv8bV18nOn"
 
 
 class CardGetVerifyCode(View):
@@ -120,6 +120,9 @@ class CardUpdateAPIView(APIView):
             if etc.is_paycom_card_exists(card.pk, card_token):
                 if not card.is_verified:
                     card.token = card_token
+                    #
+                    card.number = additional_data.get("number")
+                    card.expiration = additional_data.get("expire")
                     card.additional_data = additional_data
                     card.is_verified = True
                 if isinstance(auto_payment, bool):
@@ -134,8 +137,10 @@ class CardUpdateAPIView(APIView):
 
 
 class CardListAPIView(generics.ListAPIView):
+    serializer_class = serializers.CardListSerializer
 
     def get_queryset(self):
+
         return models.Card.objects.all()
 
 

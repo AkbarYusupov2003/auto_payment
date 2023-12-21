@@ -21,9 +21,10 @@ def is_paycom_card_exists(card_id, token):
 
 
 def pay_by_card(instance, price):
+    # TODO FIX EROR IF 2 IS VERIFIED AND 1 OF THEM DOESNT HAVE ENOUGH MONEY
     print("pay_by_card")
     account_id = instance.user.id
-    card = models.Card.objects.filter(account_id=account_id, is_active=True, auto_payment=True).first()
+    card = models.Card.objects.filter(account_id=account_id, is_verified=True, auto_payment=True).first()
     print("Card", card)
     exists = is_paycom_card_exists(card.pk, card.token) if card else False
     if exists:
