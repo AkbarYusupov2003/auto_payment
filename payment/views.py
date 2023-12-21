@@ -1,3 +1,4 @@
+import re
 import json
 import datetime
 from django.conf import settings
@@ -133,8 +134,12 @@ class CardUpdateAPIView(APIView):
                 card.save()
         else:
             card.token = token
-            card.number = additional_data.get("number")
-            card.expire = additional_data.get("expire")
+            number = additional_data.get("number")
+            expire = additional_data.get("expire")
+            if re.match(r"^(9860|8600|5614)[0-9]{2}(\*){6}[0-9]{4}$", number):
+                card.number = number
+            if re.match(r"^(0[1-9]|1[0-2])/(2[3-9]|[3-9][0-9])$", expire):
+                card.expire = expire
             card.additional_data = additional_data
             card.save()
 
