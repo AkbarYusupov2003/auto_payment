@@ -19,8 +19,9 @@ class Card(models.Model):
     #
     auto_payment = models.BooleanField("Авто оплата", default=True)
     is_verified = models.BooleanField("Верифицирована", default=False)
-    created_at = models.DateTimeField("Создано", auto_now_add=True)
-    updated_at = models.DateTimeField("Обновлено", auto_now=True)
+    created_at = models.DateTimeField("Создана", auto_now_add=True)
+    updated_at = models.DateTimeField("Обновлена", auto_now=True)
+    is_deleted = models.BooleanField("Удалена", default=False)
 
     class Meta:
         verbose_name = "Карта"
@@ -34,7 +35,7 @@ class Receipt(models.Model):
         FAILED = "FAILED", "Ошибка"
         PAID = "PAID", "Оплачен"
 
-    account_id = models.PositiveIntegerField("ID Аккаунта")
+    card = models.ForeignKey(Card, verbose_name="Карта", on_delete=models.PROTECT)
     receipt_id = models.CharField("ID Чека", max_length=32, unique=True)
     status = models.CharField("Статус", choices=StatusChoices.choices)
     info = models.CharField("Информация", max_length=128)
