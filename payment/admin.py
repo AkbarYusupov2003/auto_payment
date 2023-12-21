@@ -6,11 +6,12 @@ from payment import models
 @admin.register(models.Card)
 class CardAdmin(admin.ModelAdmin):
     list_display = ("pk", "account_id", "number", "expire", "created_at", "updated_at", "is_verified")
+    list_filter = ("is_verified", "is_deleted", "created_at", "updated_at")
 
 
 @admin.register(models.Receipt)
 class ReceiptAdmin(admin.ModelAdmin):
-    list_display = ("card_id", "receipt_id", "status", "info", "amount", "auto_paid")
+    list_display = ("receipt_id", "status", "info", "amount", "auto_paid")
     list_filter = ("status", "info", "auto_paid")
 
 

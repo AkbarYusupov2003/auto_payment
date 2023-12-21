@@ -19,7 +19,7 @@ from payment.utils import data_extractor, tokens, etc
 class MainView(View):
     # TODO for Frontend: generate id -> from user_id...
     def get(self, request, *args, **kwargs):
-        card_id = 8 # models.Card.objects.all().last().pk + 1
+        card_id = 1 # models.Card.objects.all().last().pk + 1
         body = {
             "id": card_id,
             "method": "cards.create",
@@ -34,8 +34,8 @@ class MainView(View):
         return HttpResponse(f"data: {data}")
 
 
-TOKEN = "6583f789448046c31012c12d_FQoSBOsW06JD4hnIJgUMSIy94oK2MZ2og6HVn8Vu7cKYxppqQVTwNkOQ7GioDqfEFCHh9J0GBoeibWYqyRHvZ2USCn22RWXCx3u8jtxaaBvrEsZKPS15xkajgoA9ibpXUXFqzvYsvXbaq7pRFk6nUgFvrraRr1uHgxHutVIjJBMGDqImnYCcMS3PUJFo0bJ8TtAOIrFWIK8BvunmBhWkkCxvzFXaE8kjsCRa6jH0fNImPXuDXr8vTEFe9YRWEa4q6ODE9PX87ZDBhMJN2jdszMeyfBJBK5TouBZpf6sPmvErjzcOY0mFc6neWOkeBzY3byC4byHbutn0k2xkzEQ0m9kttF7Zm0GZ5w9CjfrX9nyBKMnp0W6He4gxwI1C42z4AtmWDS"
-PK = 8
+TOKEN = "658437dd448046c31012c140_7ikvwpEVaY0jZQI3X7tygzIvtmGEYy4KHzjgvGkb2MHFK3u6YcWwanvqyWixXpYys2t3MGDIyGz16E5Ho5kIrkNIxG2FdTASRt5HwzCNDDbiVxdgjg21DdN4NP6SgQTwZzBxxmPCTbk636ckm9WO6OQBX4B2nddeEF3jkUrZw13B8Xh62HWsSuo98axCZhCSXK2sq48dQKj8RKIvKfAXbqWbynanPDVVgT9H9QOqeBSWipEZi6fuGYAEUtYsIP8BYsO88Hbbn55qSQz6cw3F7yePy0fe8FFHAVcqQpZkyCDQACGJwy3QuAOVTzEwXAGVMW1MDrVMsvFsd39GGxpNnxoSEI9AbGazybpA2Y8ReFh72TVpTnYazT9MxdpEdZmKOyXMnw"
+PK = 1
 
 
 class CardGetVerifyCode(View):
@@ -109,6 +109,7 @@ class CardUpdateAPIView(APIView):
     def post(self, request, *args, **kwargs):
         try:
             account_id = int(tokens.get_data_from_token(request.META["HTTP_AUTHORIZATION"]).get("user_id"))
+            account_id = 1 # TODO REMOVE
         except:
             return Response({"error": ""}, status=401)
 
@@ -123,7 +124,6 @@ class CardUpdateAPIView(APIView):
 
         get_object_or_404(models.Account, pk=account_id)
         card = get_object_or_404(models.Card, pk=card_id, account_id=account_id)
-
         if etc.is_paycom_card_exists(card.pk, token):
             if not card.is_verified:
                 card.token = token
