@@ -74,6 +74,17 @@ class CardVerify(View):
 # Move to Frontend ended
 
 
+class CardListAPIView(generics.ListAPIView):
+    serializer_class = serializers.CardListSerializer
+
+    def get_queryset(self):
+        account_id = self.kwargs["account_id"]
+        # splay_data = tokens.get_data_from_token(self.request.META["HTTP_AUTHORIZATION"])
+        # if not (int(splay_data.get("user_id")) == account_id):
+        #     raise Exception("")
+        return models.Card.objects.filter(account_id=account_id)
+
+
 class CardCreateAPIView(APIView):
     authentication_classes = ()
     permission_classes = (permissions.AllowAny,)
@@ -133,17 +144,6 @@ class CardUpdateAPIView(APIView):
             return Response({"message": "The card was successfully updated"}, status=200)
         else:
             return Response({"error": "Card not found"}, status=404)
-
-
-class CardListAPIView(generics.ListAPIView):
-    serializer_class = serializers.CardListSerializer
-
-    def get_queryset(self):
-        account_id = self.kwargs["account_id"]
-        # splay_data = tokens.get_data_from_token(self.request.META["HTTP_AUTHORIZATION"])
-        # if not (int(splay_data.get("user_id")) == account_id):
-        #     raise Exception("")
-        return models.Card.objects.filter(account_id=account_id)
 
 
 class BuySubscriptionAPIView(APIView):
