@@ -71,13 +71,16 @@ class CardVerify(View):
 
 class CardListAPIView(generics.ListAPIView):
     serializer_class = serializers.CardListSerializer
+    authentication_classes = ()
+    permission_classes = (permissions.AllowAny,)
 
     def get_queryset(self):
-        account_id = self.kwargs["account_id"]
-        # splay_data = tokens.get_data_from_token(self.request.META["HTTP_AUTHORIZATION"])
-        # if not (int(splay_data.get("user_id")) == account_id):
-        #     raise Exception("")
-        return models.Card.objects.filter(account_id=account_id)
+        try:
+            splay_data = tokens.get_data_from_token(self.request.META["HTTP_AUTHORIZATION"])
+            account_id = int(splay_data.get("user_id"))
+            return models.Card.objects.filter(account_id=account_id)
+        except:
+            return []
 
 
 class CardCreateAPIView(APIView):
@@ -85,15 +88,12 @@ class CardCreateAPIView(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request, *args, **kwargs):
-        # try:
-        #     splay_data = tokens.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
-        #     account_id = json.loads(request.body)["account_id"]
-        #     if not (account_id == int(splay_data["user_id"])):
-        #         raise Exception("")
-        # except Exception as e:
-        #     print("exception", e)
-        #     return Response({"error": "token, account_id does not match"}, status=401)
-        account_id = json.loads(request.body)["account_id"]
+        try:
+            splay_data = tokens.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
+            account_id = int(splay_data["user_id"])
+        except:
+            return Response({"error": ""}, status=401)
+
         if models.Card.objects.filter(account_id=account_id).count() < 10:
             card = models.Card.objects.create(account_id=account_id)
             return Response({"message": "The card was successfully created", "id": card.pk}, status=201)
@@ -103,49 +103,77 @@ class CardCreateAPIView(APIView):
 
 # create with fields: account_id, card_id, is_verified=False
 class CardUpdateAPIView(APIView):
+    authentication_classes = ()
+    permission_classes = (permissions.AllowAny,)
 
     def post(self, request, *args, **kwargs):
-        data = json.loads(request.body)
-
         try:
-            account_id = int(data["account_id"])
-            # splay_data = tokens.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
-            # if not (int(splay_data.get("user_id")) == account_id):
-            #     raise Exception("")
+            data = json.loads(request.body)
+            splay_data = tokens.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
+            account_id = int(splay_data.get("user_id"))
             card_id = int(self.kwargs["card_id"])
-            card_token = str(data["token"])
+            token = str(data["token"])
             additional_data = dict(data["additional_data"])
             auto_payment = data.get("auto_payment")
         except:
             return Response({"error": "Data validation error"}, status=400)
 
         get_object_or_404(models.Account, pk=account_id)
-        cards = models.Card.objects.filter(pk=card_id, account_id=account_id)
-        exists = False
-        for card in cards:
-            if etc.is_paycom_card_exists(card.pk, card_token):
-                if not card.is_verified:
-                    card.token = card_token
-                    card.number = additional_data.get("number")
-                    card.expire = additional_data.get("expire")
-                    card.additional_data = additional_data
-                    card.is_verified = True
-                if isinstance(auto_payment, bool):
-                    card.auto_payment = auto_payment
-                    card.save()
-                exists = True
-                break
-        if exists:
-            return Response({"message": "The card was successfully updated"}, status=200)
+        card = get_object_or_404(models.Card, pk=card_id, account_id=account_id)
+
+        if etc.is_paycom_card_exists(card.pk, token):
+            if not card.is_verified:
+                card.token = token
+                card.number = additional_data.get("number")
+                card.expire = additional_data.get("expire")
+                card.additional_data = additional_data
+                card.is_verified = True
+            if isinstance(auto_payment, bool):
+                card.auto_payment = auto_payment
+                card.save()
         else:
-            return Response({"error": "Card not found"}, status=404)
+            card.token = token
+            card.number = additional_data.get("number")
+            card.expire = additional_data.get("expire")
+            card.additional_data = additional_data
+            card.save()
+
+        return Response({"message": "The card was successfully updated"}, status=200)
+
+
+# TODO
+class RefillBalanceAPIView(APIView):
+    authentication_classes = ()
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request, *args, **kwargs):
+
+        return Response({"message": "ok"}, status=200)
 
 
 class SubscriptionPaymentAPIView(APIView):
+    authentication_classes = ()
+    permission_classes = (permissions.AllowAny,)
 
     def post(self, request, *args, **kwargs):
-        body = json.loads(request.body)
-        print(body)
+        try:
+            data = json.loads(request.body)
+            splay_data = tokens.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
+            account_id = int(splay_data.get("user_id"))
+            card = models.Card.objects.get(
+                pk=int(data["card_id"]), account_id=account_id
+            )
+            subscription = models.Subscription.objects.get(
+                pk=int(data["sub_id"])
+            )
+        except:
+            return Response({"error": ""}, status=401)
+
+
+        print(data)
+
+
+
 
         return Response({"message": "ok"}, status=200)
 
