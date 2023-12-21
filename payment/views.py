@@ -154,7 +154,17 @@ class RefillBalanceAPIView(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request, *args, **kwargs):
-
+        # Пополнение с карты на баланс
+        try:
+            data = json.loads(request.body)
+            splay_data = tokens.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
+            account_id = int(splay_data.get("user_id"))
+            account_id = 1  # TODO REMOVE
+        except:
+            return Response({"error": ""}, status=401)
+        card = get_object_or_404(models.Card, pk=int(data["card_id"]), account_id=account_id, is_verified=True)
+        # -----------------------------------------------------------------------------------------
+        # card_id, amount
         return Response({"message": "ok"}, status=200)
 
 
