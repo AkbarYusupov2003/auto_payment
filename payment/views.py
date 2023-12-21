@@ -140,6 +140,9 @@ class CardListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         account_id = self.kwargs["account_id"]
+        # splay_data = tokens.get_data_from_token(self.request.META["HTTP_AUTHORIZATION"])
+        # if not (int(splay_data.get("user_id")) == account_id):
+        #     raise Exception("")
         return models.Card.objects.filter(account_id=account_id)
 
 
