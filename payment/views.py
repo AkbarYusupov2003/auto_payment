@@ -102,7 +102,6 @@ class CardCreateAPIView(APIView):
             return Response({"error": "Account already has 10 cards"}, status=405)
 
 
-# create with fields: account_id, card_id, is_verified=False
 class CardUpdateAPIView(APIView):
     authentication_classes = ()
     permission_classes = (permissions.AllowAny,)
