@@ -161,53 +161,26 @@ class SubscriptionPaymentAPIView(APIView):
             splay_data = tokens.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
             account_id = int(splay_data.get("user_id"))
             card = models.Card.objects.get(
-                pk=int(data["card_id"]), account_id=account_id
+                pk=int(data["card_id"]), account_id=account_id, is_verified=True
             )
             subscription = models.Subscription.objects.get(
                 pk=int(data["sub_id"])
             )
         except:
             return Response({"error": ""}, status=401)
-
-
-        print(data)
-
-
-
-
-        return Response({"message": "ok"}, status=200)
-
-        # body = json.loads(request.body)
-        # sub_id = body.get("sub_id")
-        # account_id = body.get("account_id")
-        # card_id = body.get("card_id")
-        # # TODO isinstance
-        # if type(sub_id) == int and type(account_id) == int and type(card_id) == int:
-        #     get_object_or_404(models.Account, pk=account_id)
-        #     get_object_or_404(models.Card, pk=card_id, account_id=account_id)
-        #     allowed_subs = models.Subscription.objects.all().values_list("pk", flat=True)
-        #     if not (sub_id in allowed_subs):
-        #         return Response({"error": "sub_id validation"}, status=400)
-        #     today = datetime.datetime.today()
-        #     instance = models.IntermediateSubscription.objects.filter(
-        #         subscription_type_id=sub_id, user_id=account_id, date_of_debiting__gte=today
-        #     ).first()
-        #     if instance:
-        #         paid = etc.pay_by_card(instance, instance.subscription_type.price)
-        #         if paid:
-        #             instance.date_of_debiting += datetime.timedelta(days=30)
-        #             instance.save()
-        #             return Response({"message": "subscription paid"}, status=200)
-        #     else:
-        #         instance = models.IntermediateSubscription.objects.create(
-        #             subscription_type_id=sub_id, user_id=account_id
-        #         )
-        #         paid = etc.pay_by_card(instance, instance.subscription_type.price)
-        #         if paid:
-        #             instance.date_of_debiting = today + datetime.timedelta(days=30)
-        #             instance.save()
-        #             return Response({"message": "subscription paid"}, status=200)
-        #
-        #     return Response({"error": "subscription was not paid"}, status=200)
-        # else:
-        #     return Response({"error": "numeric validation"}, status=400)
+        # -----------------------------------------------------------------------------------------
+        today = datetime.datetime.today()
+        instance = models.IntermediateSubscription.objects.filter(
+            user_id=account_id, subscription_type_id=subscription.pk, date_of_debiting__gte=today
+        ).first()
+        if not instance:
+            instance = models.IntermediateSubscription.objects.create(
+                subscription_type_id=subscription.pk, user_id=account_id
+            )
+        paid = etc.pay_by_card(card, subscription.price, subscription.title_ru)
+        if paid:
+            instance.date_of_debiting += datetime.timedelta(days=30)
+            instance.save()
+            return Response({"message": "subscription paid"}, status=200)
+        else:
+            return Response({"error": "subscription was not paid"}, status=406)

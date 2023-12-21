@@ -37,8 +37,9 @@ class Receipt(models.Model):
     account_id = models.PositiveIntegerField("ID Аккаунта")
     receipt_id = models.CharField("ID Чека", max_length=32, unique=True)
     status = models.CharField("Статус", choices=StatusChoices.choices)
-    info = models.CharField("Инфо", max_length=128)
+    info = models.CharField("Информация", max_length=128)
     amount = models.IntegerField("Сумма")
+    auto_paid = models.BooleanField("Оплачен автоматический", default=False)
     created_at = models.DateTimeField("Создано", auto_now_add=True)
     updated_at = models.DateTimeField("Обновлено", auto_now=True)
 

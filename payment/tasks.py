@@ -19,12 +19,12 @@ def daily_subscription_task():
     day_after_tomorrow = models.IntermediateSubscription.objects.filter(date_of_debiting=today + datetime.timedelta(days=2))
     for instance in to_extend:
         print("instance", instance)
-        archive = instance.subscription_type.archive
-        price = instance.subscription_type.price
-        if archive:
+
+        if instance.subscription_type.archive:
             instance.delete()
             continue
 
+        price = instance.subscription_type.price
         if instance.user.balance >= price:
             instance.user.balance -= price
             instance.user.save()
@@ -32,12 +32,19 @@ def daily_subscription_task():
             instance.save()
             extended.append(instance)
         else:
-            paid = etc.pay_by_card(instance, price)
-            if paid:
-                instance.date_of_debiting += datetime.timedelta(days=30)
-                instance.save()
-                extended.append(instance)
-            else:
+            cards = models.Card.objects.filter(account_id=instance.user_id, is_verified=True, auto_payment=True)
+            info = instance.subscription_type.title_ru
+            paid = False
+            for card in cards:
+                if etc.pay_by_card(card, price, info): # card, price, info
+                    paid = True
+                    instance.date_of_debiting += datetime.timedelta(days=30)
+                    instance.save()
+                    extended.append(instance)
+
+                    break
+
+            if not paid:
                 instance.delete()
 
     return {"extended": extended, "tomorrow": tomorrow, "day_after_tomorrow": day_after_tomorrow}
