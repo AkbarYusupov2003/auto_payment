@@ -10,9 +10,8 @@ from payment.utils import receipts
 
 @shared_task(name="daily-subscription-task")
 def daily_subscription_task():
+    # TODO Deleting old subs - ??? models.IntermediateSubscription.objects.filter(date_of_debiting__date__lt=today).delete()
     today = datetime.datetime.now()
-    print("today", today)
-    # TODO Deleting old subs - ??? models.IntermediateSubscription.objects.filter(date_of_debiting__date__lt=today).delete() 
     to_extend = models.IntermediateSubscription.objects.filter(auto_payment=True, date_of_debiting=today).select_related("subscription_type", "user")
     extended = []
     tomorrow = models.IntermediateSubscription.objects.filter(date_of_debiting=today + datetime.timedelta(days=1))
@@ -36,12 +35,11 @@ def daily_subscription_task():
             info = instance.subscription_type.title_ru
             paid = False
             for card in cards:
-                if etc.pay_by_card(card, price, info): # card, price, info
+                if etc.pay_by_card(card, price, info):
                     paid = True
                     instance.date_of_debiting += datetime.timedelta(days=30)
                     instance.save()
                     extended.append(instance)
-
                     break
 
             if not paid:
