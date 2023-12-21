@@ -28,6 +28,7 @@ def pay_by_card(card, price, info, auto_paid=False):
         status = models.Receipt.StatusChoices.CREATED
         receipt = models.Receipt.objects.create(card=card, status=status, info=info, amount=price)
         receipt_id = receipts.create_receipt(receipt.pk, account_id, price)
+        print("RECEIPT ID", receipt_id)
         if receipt_id:
             receipt.receipt_id = receipt_id
             receipt.save()
