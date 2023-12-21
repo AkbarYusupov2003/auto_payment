@@ -95,13 +95,13 @@ class CardCreateAPIView(APIView):
         except:
             return Response({"error": ""}, status=401)
 
-        if models.Card.objects.filter(account_id=account_id).count() < 10:
+        if models.Card.objects.filter(account_id=account_id, is_deleted=False).count() < 10:
             card = models.Card.objects.create(account_id=account_id)
             return Response({"message": "The card was successfully created", "id": card.pk}, status=201)
         else:
             return Response({"error": "Account already has 10 cards"}, status=405)
 
-
+# TODO CHANGE TO Retrieve, add setting is_deleted to True
 class CardUpdateAPIView(APIView):
     authentication_classes = ()
     permission_classes = (permissions.AllowAny,)
@@ -167,23 +167,25 @@ class SubscriptionPaymentAPIView(APIView):
             data = json.loads(request.body)
             splay_data = tokens.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
             account_id = int(splay_data.get("user_id"))
+            account_id = 1  # TODO REMOVE
         except:
             return Response({"error": ""}, status=401)
-        account_id = 1 # TODO REMOVE
         card = get_object_or_404(models.Card, pk=int(data["card_id"]), account_id=account_id, is_verified=True)
         subscription = get_object_or_404(models.Subscription, pk=int(data["sub_id"]))
         # -----------------------------------------------------------------------------------------
-        today = datetime.datetime.today()
-        instance = models.IntermediateSubscription.objects.filter(
-            user_id=account_id, subscription_type_id=subscription.pk, date_of_debiting__gte=today
-        ).first()
-        if not instance:
+        try:
+            instance = models.IntermediateSubscription.objects.get(user_id=account_id, subscription_type=subscription)
+        except models.IntermediateSubscription.DoesNotExist:
             instance = models.IntermediateSubscription.objects.create(
-                subscription_type_id=subscription.pk, user_id=account_id
+                subscription_type=subscription, user_id=account_id
             )
+        # -----------------------------------------------------------------------------------------
         paid = etc.pay_by_card(card, subscription.price, subscription.title_ru)
         if paid:
-            instance.date_of_debiting += datetime.timedelta(days=30)
+            if not instance.date_of_debiting:
+                instance.date_of_debiting = datetime.date.today() + datetime.timedelta(days=30)
+            else:
+                instance.date_of_debiting += datetime.timedelta(days=30)
             instance.save()
             return Response({"message": "subscription paid"}, status=200)
         else:
