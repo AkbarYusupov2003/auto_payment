@@ -13,7 +13,7 @@ urlpatterns = [
     #
     path("cards/", views.CardListAPIView.as_view()),
     path("cards/create/", views.CardCreateAPIView.as_view()),
-    path("cards/<int:card_id>/", views.CardUpdateAPIView.as_view()),
+    path("cards/<int:card_id>/", views.CardRetrieveAPIView.as_view()),
     #
     path("refill-balance/", views.RefillBalanceAPIView.as_view()),
     path("subscription-payment/", views.SubscriptionPaymentAPIView.as_view()),

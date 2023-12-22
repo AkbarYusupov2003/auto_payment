@@ -100,7 +100,7 @@ class CardCreateAPIView(APIView):
             return Response({"error": "Account already has 10 cards"}, status=405)
 
 
-class CardUpdateAPIView(APIView):
+class CardRetrieveAPIView(APIView):
     authentication_classes = ()
     permission_classes = (permissions.AllowAny,)
 
