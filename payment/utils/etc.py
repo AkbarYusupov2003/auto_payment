@@ -53,7 +53,7 @@ def pay_by_card(
             auto_paid=auto_paid,
             subscription_id=subscription_id
         )
-        models.Transaction.objects.create(
+        transaction = models.Transaction.objects.create(
             transaction_id=receipt.receipt_id,
             payment_service="payme-card",
             amount=amount,
@@ -70,7 +70,9 @@ def pay_by_card(
             receipt.save()
             paid = receipts.pay_receipt(receipt.pk, receipt_id, account_id, card.token)
             if paid:
-                # TODO UPDATE TRANSACTION
+
+                # TODO обновить транзакцию
+                # TODO продлить подписку или пополнить баланс
                 receipt.status = models.Receipt.StatusChoices.PAID
                 receipt.save()
                 return True

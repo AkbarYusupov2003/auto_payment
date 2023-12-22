@@ -226,11 +226,7 @@ class SubscriptionPaymentAPIView(APIView):
             models.IntermediateSubscription.objects.filter(subscription_type=subscription, user_id=account_id).delete()
             instance = models.IntermediateSubscription.objects.create(subscription_type=subscription, user_id=account_id)
         # -----------------------------------------------------------------------------------------
-        paid = etc.pay_by_card(
-            subscription=instance,
-            card=card,
-            amount=subscription.price,
-        )
+        paid = etc.pay_by_card(subscription=instance, card=card, amount=subscription.price)
         if paid:
             if not instance.date_of_debiting:
                 instance.date_of_debiting = today + datetime.timedelta(days=30)
