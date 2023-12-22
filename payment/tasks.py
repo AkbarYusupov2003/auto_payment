@@ -36,7 +36,9 @@ def daily_subscription_task():
             instance.save()
             extended.append(instance)
         else:
-            cards = models.Card.objects.filter(account_id=instance.user_id, is_verified=True, auto_payment=True)
+            cards = models.Card.objects.filter(
+                account_id=instance.user_id, is_verified=True, auto_payment=True, is_deleted=False
+            )
             info = instance.subscription_type.title_ru
             paid = False
             for card in cards:

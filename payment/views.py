@@ -77,7 +77,7 @@ class CardListAPIView(generics.ListAPIView):
         try:
             splay_data = tokens.get_data_from_token(self.request.META["HTTP_AUTHORIZATION"])
             account_id = int(splay_data.get("user_id"))
-            return models.Card.objects.filter(account_id=account_id)
+            return models.Card.objects.filter(account_id=account_id, is_deleted=False)
         except:
             return []
 
@@ -121,7 +121,7 @@ class CardRetrieveAPIView(APIView):
             return Response({"error": "Data validation error"}, status=401)
         # -----------------------------------------------------------------------------------------
         get_object_or_404(models.Account, pk=account_id)
-        card = get_object_or_404(models.Card, pk=card_id, account_id=account_id)
+        card = get_object_or_404(models.Card, pk=card_id, account_id=account_id, is_deleted=False)
         if etc.is_paycom_card_exists(card.pk, token):
             if not card.is_verified:
                 card.token = token
@@ -185,7 +185,7 @@ class RefillBalanceAPIView(APIView):
         except:
             return Response({"error": "Data validation error"}, status=401)
         account = get_object_or_404(models.Account, pk=account_id)
-        card = get_object_or_404(models.Card, pk=card_id, account_id=account_id, is_verified=True)
+        card = get_object_or_404(models.Card, pk=card_id, account_id=account_id, is_verified=True, is_deleted=False)
         # -----------------------------------------------------------------------------------------
         info = "Пополнение баланса"
         paid = etc.pay_by_card(card, amount, info)
@@ -215,7 +215,7 @@ class SubscriptionPaymentAPIView(APIView):
             sub_id = int(data["sub_id"])
         except:
             return Response({"error": "Data validation error"}, status=401)
-        card = get_object_or_404(models.Card, pk=card_id, account_id=account_id, is_verified=True)
+        card = get_object_or_404(models.Card, pk=card_id, account_id=account_id, is_verified=True, is_deleted=False)
         subscription = get_object_or_404(models.Subscription, pk=sub_id)
         # -----------------------------------------------------------------------------------------
         today = datetime.date.today()
