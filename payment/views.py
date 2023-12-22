@@ -101,6 +101,7 @@ class CardCreateAPIView(APIView):
         else:
             return Response({"error": "Account already has 10 cards"}, status=405)
 
+
 # TODO CHANGE TO Retrieve, add setting is_deleted to True
 class CardUpdateAPIView(APIView):
     authentication_classes = ()
@@ -147,6 +148,24 @@ class CardUpdateAPIView(APIView):
 
         return Response({"message": "The card was successfully updated"}, status=200)
 
+    def delete(self, request, *args, **kwargs):
+        try:
+            splay_data = tokens.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
+            account_id = int(splay_data.get("user_id"))
+            account_id = 1  # TODO REMOVE
+        except:
+            return Response({"error": ""}, status=401)
+
+        try:
+            card_id = int(self.kwargs["card_id"])
+        except:
+            return Response({"error": "Data validation error"}, status=401)
+
+        card = get_object_or_404(models.Card, pk=card_id, account_id=account_id)
+        card.is_deleted = True
+        card.save()
+        return Response({"message": ""}, status=200)
+
 
 # TODO
 class RefillBalanceAPIView(APIView):
@@ -154,7 +173,6 @@ class RefillBalanceAPIView(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request, *args, **kwargs):
-        # Пополнение с карты на баланс
         try:
             data = json.loads(request.body)
             splay_data = tokens.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
@@ -164,7 +182,7 @@ class RefillBalanceAPIView(APIView):
             return Response({"error": ""}, status=401)
         card = get_object_or_404(models.Card, pk=int(data["card_id"]), account_id=account_id, is_verified=True)
         # -----------------------------------------------------------------------------------------
-        # card_id, amount
+        # Пополнение с карты на балан: сcard_id, amount
         return Response({"message": "ok"}, status=200)
 
 
