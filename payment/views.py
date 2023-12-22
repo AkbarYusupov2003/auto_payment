@@ -1,11 +1,9 @@
 import re
 import json
 import datetime
-from django.conf import settings
+from django.db.models import F
 from django.shortcuts import HttpResponse, get_object_or_404
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from rest_framework import generics, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -94,7 +92,7 @@ class CardCreateAPIView(APIView):
             account_id = int(splay_data["user_id"])
         except:
             return Response({"error": ""}, status=401)
-
+        # -----------------------------------------------------------------------------------------
         if models.Card.objects.filter(account_id=account_id, is_deleted=False).count() < 10:
             card = models.Card.objects.create(account_id=account_id)
             return Response({"message": "The card was successfully created", "id": card.pk}, status=201)
@@ -112,7 +110,7 @@ class CardUpdateAPIView(APIView):
             account_id = 1 # TODO REMOVE
         except:
             return Response({"error": ""}, status=401)
-
+        # -----------------------------------------------------------------------------------------
         try:
             data = json.loads(request.body)
             card_id = int(self.kwargs["card_id"])
@@ -121,7 +119,7 @@ class CardUpdateAPIView(APIView):
             auto_payment = data.get("auto_payment")
         except:
             return Response({"error": "Data validation error"}, status=401)
-
+        # -----------------------------------------------------------------------------------------
         get_object_or_404(models.Account, pk=account_id)
         card = get_object_or_404(models.Card, pk=card_id, account_id=account_id)
         if etc.is_paycom_card_exists(card.pk, token):
@@ -154,12 +152,12 @@ class CardUpdateAPIView(APIView):
             account_id = 1  # TODO REMOVE
         except:
             return Response({"error": ""}, status=401)
-
+        # -----------------------------------------------------------------------------------------
         try:
             card_id = int(self.kwargs["card_id"])
         except:
             return Response({"error": "Data validation error"}, status=401)
-
+        # -----------------------------------------------------------------------------------------
         card = get_object_or_404(models.Card, pk=card_id, account_id=account_id)
         card.is_deleted = True
         card.save()
@@ -181,17 +179,20 @@ class RefillBalanceAPIView(APIView):
             return Response({"error": ""}, status=401)
         # -----------------------------------------------------------------------------------------
         try:
-            pass
+            card_id = int(self.kwargs["card_id"])
+            amount = int(self.kwargs["amount"])
+            if not (amount > 0):
+                raise Exception("amount not positive")
         except:
-            pass
-
-        card = get_object_or_404(models.Card, pk=int(data["card_id"]), account_id=account_id, is_verified=True)
+            return Response({"error": "Data validation error"}, status=401)
+        account = get_object_or_404(models.Account, pk=account_id)
+        card = get_object_or_404(models.Card, pk=card_id, account_id=account_id, is_verified=True)
         # -----------------------------------------------------------------------------------------
-        # Пополнение с карты на баланс: card_id, amount
-        amount = 1
         info = "Пополнение баланса"
         paid = etc.pay_by_card(card, amount, info)
         if paid:
+            account.balance = F("balance") + amount
+            account.save()
             return Response({"message": "Refill operation succeeded"}, status=200)
         else:
             return Response({"error": "Refill operation failed"}, status=406)
@@ -209,8 +210,14 @@ class SubscriptionPaymentAPIView(APIView):
             account_id = 1  # TODO REMOVE
         except:
             return Response({"error": ""}, status=401)
-        card = get_object_or_404(models.Card, pk=int(data["card_id"]), account_id=account_id, is_verified=True)
-        subscription = get_object_or_404(models.Subscription, pk=int(data["sub_id"]))
+        # -----------------------------------------------------------------------------------------
+        try:
+            card_id = int(data["card_id"])
+            sub_id = int(data["sub_id"])
+        except:
+            return Response({"error": "Data validation error"}, status=401)
+        card = get_object_or_404(models.Card, pk=card_id, account_id=account_id, is_verified=True)
+        subscription = get_object_or_404(models.Subscription, pk=sub_id)
         # -----------------------------------------------------------------------------------------
         try:
             instance = models.IntermediateSubscription.objects.get(user_id=account_id, subscription_type=subscription)
