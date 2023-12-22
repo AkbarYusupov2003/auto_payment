@@ -170,7 +170,6 @@ class RefillBalanceAPIView(APIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            data = json.loads(request.body)
             splay_data = tokens.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
             account_id = int(splay_data.get("user_id"))
             account_id = 1  # TODO REMOVE
@@ -178,8 +177,9 @@ class RefillBalanceAPIView(APIView):
             return Response({"error": ""}, status=401)
         # -----------------------------------------------------------------------------------------
         try:
-            card_id = int(self.kwargs["card_id"])
-            amount = int(self.kwargs["amount"])
+            data = json.loads(request.body)
+            card_id = int(data["card_id"])
+            amount = int(data["amount"])
             if not (amount > 0):
                 raise Exception("amount not positive")
         except:
@@ -229,7 +229,7 @@ class SubscriptionPaymentAPIView(APIView):
         # -----------------------------------------------------------------------------------------
         paid = etc.pay_by_card(card, subscription.price, subscription.title_ru)
         if paid:
-            if not instance.date_of_debiting or instance.date_of_debiting:
+            if not instance.date_of_debiting:
                 instance.date_of_debiting = today + datetime.timedelta(days=30)
             else:
                 instance.date_of_debiting += datetime.timedelta(days=30)
