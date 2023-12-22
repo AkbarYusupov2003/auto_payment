@@ -179,6 +179,12 @@ class RefillBalanceAPIView(APIView):
             account_id = 1  # TODO REMOVE
         except:
             return Response({"error": ""}, status=401)
+        # -----------------------------------------------------------------------------------------
+        try:
+            pass
+        except:
+            pass
+
         card = get_object_or_404(models.Card, pk=int(data["card_id"]), account_id=account_id, is_verified=True)
         # -----------------------------------------------------------------------------------------
         # Пополнение с карты на баланс: card_id, amount
