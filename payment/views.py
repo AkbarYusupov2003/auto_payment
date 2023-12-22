@@ -181,8 +181,14 @@ class RefillBalanceAPIView(APIView):
             return Response({"error": ""}, status=401)
         card = get_object_or_404(models.Card, pk=int(data["card_id"]), account_id=account_id, is_verified=True)
         # -----------------------------------------------------------------------------------------
-        # Пополнение с карты на балан: сcard_id, amount
-        return Response({"message": "ok"}, status=200)
+        # Пополнение с карты на баланс: card_id, amount
+        amount = 1
+        info = "Пополнение баланса"
+        paid = etc.pay_by_card(card, amount, info)
+        if paid:
+            return Response({"message": "Refill operation succeeded"}, status=200)
+        else:
+            return Response({"error": "Refill operation failed"}, status=406)
 
 
 class SubscriptionPaymentAPIView(APIView):
