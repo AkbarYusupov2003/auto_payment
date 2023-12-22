@@ -102,7 +102,6 @@ class CardCreateAPIView(APIView):
             return Response({"error": "Account already has 10 cards"}, status=405)
 
 
-# TODO CHANGE TO Retrieve, add setting is_deleted to True
 class CardUpdateAPIView(APIView):
     authentication_classes = ()
     permission_classes = (permissions.AllowAny,)
@@ -164,7 +163,7 @@ class CardUpdateAPIView(APIView):
         card = get_object_or_404(models.Card, pk=card_id, account_id=account_id)
         card.is_deleted = True
         card.save()
-        return Response({"message": ""}, status=200)
+        return Response({"message": "The card is successfully deleted"}, status=200)
 
 
 # TODO
