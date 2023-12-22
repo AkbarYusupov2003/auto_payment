@@ -164,7 +164,6 @@ class CardUpdateAPIView(APIView):
         return Response({"message": "The card is successfully deleted"}, status=200)
 
 
-# TODO
 class RefillBalanceAPIView(APIView):
     authentication_classes = ()
     permission_classes = (permissions.AllowAny,)
@@ -219,17 +218,19 @@ class SubscriptionPaymentAPIView(APIView):
         card = get_object_or_404(models.Card, pk=card_id, account_id=account_id, is_verified=True)
         subscription = get_object_or_404(models.Subscription, pk=sub_id)
         # -----------------------------------------------------------------------------------------
+        today = datetime.date.today()
         try:
-            instance = models.IntermediateSubscription.objects.get(user_id=account_id, subscription_type=subscription)
-        except models.IntermediateSubscription.DoesNotExist:
-            instance = models.IntermediateSubscription.objects.create(
-                subscription_type=subscription, user_id=account_id
+            instance = models.IntermediateSubscription.objects.get(
+                user_id=account_id, subscription_type=subscription, date_of_debiting__gte=today
             )
+        except models.IntermediateSubscription.DoesNotExist:
+            models.IntermediateSubscription.objects.filter(subscription_type=subscription, user_id=account_id).delete()
+            instance = models.IntermediateSubscription.objects.create(subscription_type=subscription, user_id=account_id)
         # -----------------------------------------------------------------------------------------
         paid = etc.pay_by_card(card, subscription.price, subscription.title_ru)
         if paid:
-            if not instance.date_of_debiting:
-                instance.date_of_debiting = datetime.date.today() + datetime.timedelta(days=30)
+            if not instance.date_of_debiting or instance.date_of_debiting :
+                instance.date_of_debiting = today + datetime.timedelta(days=30)
             else:
                 instance.date_of_debiting += datetime.timedelta(days=30)
             instance.save()

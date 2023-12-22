@@ -11,6 +11,7 @@ from payment.utils import receipts
 @shared_task(name="daily-subscription-task")
 def daily_subscription_task():
     # TODO Deleting old subs - ??? models.IntermediateSubscription.objects.filter(date_of_debiting__date__lt=today).delete()
+    #
     today = datetime.datetime.now()
     to_extend = models.IntermediateSubscription.objects.filter(
         auto_payment=True, date_of_debiting=today
