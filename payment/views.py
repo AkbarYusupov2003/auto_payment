@@ -229,7 +229,7 @@ class SubscriptionPaymentAPIView(APIView):
         # -----------------------------------------------------------------------------------------
         paid = etc.pay_by_card(card, subscription.price, subscription.title_ru)
         if paid:
-            if not instance.date_of_debiting or instance.date_of_debiting :
+            if not instance.date_of_debiting or instance.date_of_debiting:
                 instance.date_of_debiting = today + datetime.timedelta(days=30)
             else:
                 instance.date_of_debiting += datetime.timedelta(days=30)

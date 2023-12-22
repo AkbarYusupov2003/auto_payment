@@ -1,4 +1,5 @@
 import datetime
+from django.db.models import Q
 from celery import shared_task
 from celery.schedules import crontab
 
@@ -11,8 +12,13 @@ from payment.utils import receipts
 @shared_task(name="daily-subscription-task")
 def daily_subscription_task():
     # TODO Deleting old subs - ??? models.IntermediateSubscription.objects.filter(date_of_debiting__date__lt=today).delete()
-    #
+
     today = datetime.datetime.now()
+
+    models.IntermediateSubscription.objects.filter(
+        Q(date_of_debiting__lt=today) | Q(date_of_debiting__isnull=True)
+    ).delete()
+
     to_extend = models.IntermediateSubscription.objects.filter(
         auto_payment=True, date_of_debiting=today
     ).select_related("subscription_type", "user")
