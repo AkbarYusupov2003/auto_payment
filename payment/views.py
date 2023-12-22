@@ -189,8 +189,6 @@ class RefillBalanceAPIView(APIView):
         # -----------------------------------------------------------------------------------------
         paid = etc.pay_by_card(card=card, amount=amount)
         if paid:
-            account.balance = F("balance") + amount
-            account.save()
             return Response({"message": "Refill operation succeeded"}, status=200)
         else:
             return Response({"error": "Refill operation failed"}, status=406)
@@ -217,10 +215,9 @@ class SubscriptionPaymentAPIView(APIView):
         card = get_object_or_404(models.Card, pk=card_id, account_id=account_id, is_verified=True, is_deleted=False)
         subscription = get_object_or_404(models.Subscription, pk=sub_id)
         # -----------------------------------------------------------------------------------------
-        today = datetime.date.today()
         try:
             instance = models.IntermediateSubscription.objects.get(
-                user_id=account_id, subscription_type=subscription, date_of_debiting__gte=today
+                user_id=account_id, subscription_type=subscription, date_of_debiting__gte=datetime.date.today()
             )
         except models.IntermediateSubscription.DoesNotExist:
             models.IntermediateSubscription.objects.filter(subscription_type=subscription, user_id=account_id).delete()
@@ -228,11 +225,6 @@ class SubscriptionPaymentAPIView(APIView):
         # -----------------------------------------------------------------------------------------
         paid = etc.pay_by_card(subscription=instance, card=card, amount=subscription.price)
         if paid:
-            if not instance.date_of_debiting:
-                instance.date_of_debiting = today + datetime.timedelta(days=30)
-            else:
-                instance.date_of_debiting += datetime.timedelta(days=30)
-            instance.save()
             return Response({"message": "subscription paid"}, status=200)
         else:
             return Response({"error": "subscription was not paid"}, status=406)

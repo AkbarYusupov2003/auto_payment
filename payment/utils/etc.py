@@ -1,3 +1,6 @@
+import datetime
+from django.db.models import F
+
 from payment.utils import data_extractor
 from payment.utils import receipts
 from payment import models
@@ -70,9 +73,21 @@ def pay_by_card(
             receipt.save()
             paid = receipts.pay_receipt(receipt.pk, receipt_id, account_id, card.token)
             if paid:
+                transaction.performed = True
+                transaction.save()
 
-                # TODO обновить транзакцию
-                # TODO продлить подписку или пополнить баланс
+                if not receipt.subscription_id:
+                    # Пополнение баланса
+                    account.balance = F("balance") + amount
+                    account.save()
+                else:
+                    # Продление подписки
+                    if not subscription.date_of_debiting:
+                        subscription.date_of_debiting = datetime.date.today() + datetime.timedelta(days=30)
+                    else:
+                        subscription.date_of_debiting += datetime.timedelta(days=30)
+                    subscription.save()
+
                 receipt.status = models.Receipt.StatusChoices.PAID
                 receipt.save()
                 return True
