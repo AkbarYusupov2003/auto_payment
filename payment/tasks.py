@@ -6,7 +6,6 @@ from celery.schedules import crontab
 from config.celery import app
 from payment import models
 from payment.utils import etc
-from payment.utils import receipts
 
 
 @shared_task(name="daily-subscription-task")
@@ -15,7 +14,6 @@ def daily_subscription_task():
     models.IntermediateSubscription.objects.filter(
         Q(date_of_debiting__lt=today) | Q(date_of_debiting__isnull=True)
     ).delete()
-    #
     to_extend = models.IntermediateSubscription.objects.filter(
         auto_payment=True, date_of_debiting=today
     ).select_related("subscription_type", "user")
