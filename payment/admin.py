@@ -12,7 +12,7 @@ class CardAdmin(admin.ModelAdmin):
 @admin.register(models.Receipt)
 class ReceiptAdmin(admin.ModelAdmin):
     list_display = ("receipt_id", "status", "info", "amount", "auto_paid")
-    list_filter = ("status", "info", "auto_paid")
+    list_filter = ("status", "info", "auto_paid", "created_at", "updated_at")
 
 
 # -------------------------------------------------------------------------------
