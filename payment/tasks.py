@@ -21,36 +21,37 @@ def daily_subscription_task():
     tomorrow = models.IntermediateSubscription.objects.filter(date_of_debiting=today + datetime.timedelta(days=1))
     day_after_tomorrow = models.IntermediateSubscription.objects.filter(date_of_debiting=today + datetime.timedelta(days=2))
 
-    for instance in to_extend:
-        print("instance", instance)
+    for subscription in to_extend:
+        print("subscription", subscription)
 
-        if instance.subscription_type.archive:
-            instance.delete()
+        if subscription.subscription_type.archive:
+            subscription.delete()
             continue
 
-        price = instance.subscription_type.price
-        if instance.user.balance >= price:
-            instance.user.balance -= price
-            instance.user.save()
-            instance.date_of_debiting += datetime.timedelta(days=30)
-            instance.save()
-            extended.append(instance)
+        price = subscription.subscription_type.price
+        if subscription.user.balance >= price:
+            subscription.user.balance -= price
+            subscription.user.save()
+            subscription.date_of_debiting += datetime.timedelta(days=30)
+            subscription.save()
+            extended.append(subscription)
         else:
             cards = models.Card.objects.filter(
-                account_id=instance.user_id, is_verified=True, auto_payment=True, is_deleted=False
+                account_id=subscription.user_id, is_verified=True, auto_payment=True, is_deleted=False
             )
-            info = instance.subscription_type.title_ru
             paid = False
             for card in cards:
-                if etc.pay_by_card(card, price, info, auto_paid=True):
+                if etc.pay_by_card(
+                    card=card, amount=price, subscription=subscription, auto_paid=True
+                ):
                     paid = True
-                    instance.date_of_debiting += datetime.timedelta(days=30)
-                    instance.save()
-                    extended.append(instance)
+                    subscription.date_of_debiting += datetime.timedelta(days=30)
+                    subscription.save()
+                    extended.append(subscription)
                     break
 
             if not paid:
-                instance.delete()
+                subscription.delete()
 
     return {"extended": extended, "tomorrow": tomorrow, "day_after_tomorrow": day_after_tomorrow}
 

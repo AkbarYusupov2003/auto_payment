@@ -33,5 +33,4 @@ def pay_receipt(pk, receipt_id, account_id, token):
     }
     result = data_extractor.get_data(body, secured=True) #.get("result")
     print("pay_receipt", result)
-    return False
     return bool(result)

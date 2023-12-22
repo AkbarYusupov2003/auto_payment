@@ -20,23 +20,40 @@ def is_paycom_card_exists(card_id, token):
         return False
 
 
-def pay_by_card(card, price, info, auto_paid=False):
+def pay_by_card(
+    card,
+    amount,
+    subscription=None,
+    auto_paid=False
+):
     # TODO CHECK
     print("pay_by_card")
     account_id = card.account_id
     exists = is_paycom_card_exists(card.pk, card.token) if card else False
     if exists:
-        status = models.Receipt.StatusChoices.CREATED
-        receipt = models.Receipt.objects.create(card=card, status=status, info=info, amount=price)
-        receipt_id = receipts.create_receipt(receipt.pk, account_id, price)
+        if subscription:
+            receipt = models.Receipt.objects.create(
+                card=card,
+                status=models.Receipt.StatusChoices.CREATED,
+                subscription_id=subscription.pk,
+                amount=amount,
+                auto_paid=auto_paid
+            )
+
+        # models.Transaction.objects.create(
+        #
+        # )
+        # TODO CREATE TRANSACTION with subscription
+
+        receipt_id = receipts.create_receipt(receipt.pk, account_id, amount)
         print("RECEIPT ID", receipt_id)
         if receipt_id:
             receipt.receipt_id = receipt_id
             receipt.save()
             paid = receipts.pay_receipt(receipt.pk, receipt_id, account_id, card.token)
             if paid:
+                # TODO UPDATE TRANSACTION
                 receipt.status = models.Receipt.StatusChoices.PAID
-                receipt.auto_paid = auto_paid
                 receipt.save()
                 return True
     return False

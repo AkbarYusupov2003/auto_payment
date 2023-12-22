@@ -1,4 +1,5 @@
 from django.contrib import admin
+from decimal import Decimal
 
 from payment import models
 
@@ -11,14 +12,23 @@ class CardAdmin(admin.ModelAdmin):
 
 @admin.register(models.Receipt)
 class ReceiptAdmin(admin.ModelAdmin):
-    list_display = ("receipt_id", "status", "info", "amount", "auto_paid")
-    list_filter = ("status", "info", "auto_paid", "created_at", "updated_at")
+    list_display = ("receipt_id", "status", "subscription_id", "amount", "auto_paid")
+    list_filter = ("status", "subscription_id", "auto_paid", "created_at", "updated_at")
 
 
 # -------------------------------------------------------------------------------
 @admin.register(models.Transaction)
 class TransactionAdmin(admin.ModelAdmin):
-    list_display = ("pk", "transaction_id", "payment_service", "performed", "amount", "username", "create_time")
+    list_display = ('account_id', 'username', 'get_amount', 'currency', 'payment_service', 'subscription_id', 'create_time', 'performed', 'transaction_id')
+    list_display_links = "username",
+    list_filter = ('performed', 'payment_service', 'currency',)
+    search_fields = ('username',)
+    ordering = ['-create_time']
+    readonly_fields = 'username', 'amount', 'transaction_id', 'performed', 'payment_service', 'additional_parameters', "get_amount"
+
+    def get_amount(self, obj=None):
+        return Decimal(obj.amount/100).quantize(Decimal("0.00"))
+    get_amount.short_description = "Сумма"
 
 
 @admin.register(models.Subscription)

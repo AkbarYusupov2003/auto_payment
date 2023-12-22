@@ -187,8 +187,7 @@ class RefillBalanceAPIView(APIView):
         account = get_object_or_404(models.Account, pk=account_id)
         card = get_object_or_404(models.Card, pk=card_id, account_id=account_id, is_verified=True, is_deleted=False)
         # -----------------------------------------------------------------------------------------
-        info = "Пополнение баланса"
-        paid = etc.pay_by_card(card, amount, info)
+        paid = etc.pay_by_card(card=card, amount=amount)
         if paid:
             account.balance = F("balance") + amount
             account.save()
@@ -227,7 +226,11 @@ class SubscriptionPaymentAPIView(APIView):
             models.IntermediateSubscription.objects.filter(subscription_type=subscription, user_id=account_id).delete()
             instance = models.IntermediateSubscription.objects.create(subscription_type=subscription, user_id=account_id)
         # -----------------------------------------------------------------------------------------
-        paid = etc.pay_by_card(card, subscription.price, subscription.title_ru)
+        paid = etc.pay_by_card(
+            subscription=instance,
+            card=card,
+            amount=subscription.price,
+        )
         if paid:
             if not instance.date_of_debiting:
                 instance.date_of_debiting = today + datetime.timedelta(days=30)

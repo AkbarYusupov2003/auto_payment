@@ -37,8 +37,10 @@ class Receipt(models.Model):
 
     card = models.ForeignKey(Card, verbose_name="Карта", on_delete=models.PROTECT)
     receipt_id = models.CharField("ID Чека", max_length=32, unique=True)
+    subscription_id = models.PositiveBigIntegerField(
+        verbose_name="ID Подписки", blank=True, null=True
+    )
     status = models.CharField("Статус", choices=StatusChoices.choices)
-    info = models.CharField("Информация", max_length=128)
     amount = models.IntegerField("Сумма")
     auto_paid = models.BooleanField("Оплачен автоматический", default=False)
     created_at = models.DateTimeField("Создано", auto_now_add=True)
@@ -51,23 +53,42 @@ class Receipt(models.Model):
 
 # -------------------------------------------------------------------------------
 class Transaction(models.Model):
+    class CurrencyChoices(models.TextChoices):
+        uzs = ("UZS", "UZS")
+        usd = ("USD", "USD")
+
     PAYMENT_SERVICES = (
-        ("splay", "Splay"),
-        ("octo", "Octo"),
+        ('splay', "Splay"),
+        ('payme', "Payme"),
+        ("payme-card", "Payme Card"),
+        ('click', "Click"),
+        ('apelsin', "Apelsin"),
+        ('paynet', "Paynet"),
+        ('octo', "Octo"),
+        ('payze', "Payze"),
     )
 
-    amount = models.BigIntegerField("Сумма в тийинах")
-    additional_parameters = models.JSONField("Дополнительные параметры", default=dict, blank=True, null=True)
-    payment_service = models.CharField("Платежная служба", max_length=10, choices=PAYMENT_SERVICES, blank=True, null=True)
-    transaction_id = models.CharField("Provider transction ID", max_length=36, blank=True, null=True)
-    performed = models.BooleanField("Выполнен", default=False)
+    amount = models.BigIntegerField("Сумма")
     create_time = models.DateTimeField("Время создания", auto_now_add=True)
-    # Payment details:
+    additional_parameters = models.JSONField("Дополнительные параметры", blank=True, null=True)
+    payment_service = models.CharField(
+        "Платежная служба", max_length=10, choices=PAYMENT_SERVICES, blank=True, null=True
+    )
+    performed = models.BooleanField("Выполнен", default=False)
+    transaction_id = models.CharField("Provider transction ID", max_length=36, blank=True, null=True)
+    #
     username = models.CharField("Пользователь", max_length=60)
+    subscription_id = models.PositiveBigIntegerField(blank=True, null=True)
+    account_id = models.PositiveBigIntegerField(blank=True, null=True)
+    currency = models.CharField(max_length=12, choices=CurrencyChoices.choices, default="UZS")
 
     class Meta:
         verbose_name = "Транзакция"
         verbose_name_plural = "Транзакции"
+        ordering = ['-create_time']
+        indexes = [
+            models.Index(fields=['transaction_id']),
+        ]
 
 
 class Subscription(models.Model):
