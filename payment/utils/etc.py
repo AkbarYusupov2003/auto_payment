@@ -21,6 +21,7 @@ def is_paycom_card_exists(card_id, token):
 
 
 def pay_by_card(card, price, info, auto_paid=False):
+    # TODO CHECK
     print("pay_by_card")
     account_id = card.account_id
     exists = is_paycom_card_exists(card.pk, card.token) if card else False
