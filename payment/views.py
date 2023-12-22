@@ -184,7 +184,7 @@ class RefillBalanceAPIView(APIView):
                 raise Exception("amount not positive")
         except:
             return Response({"error": "Data validation error"}, status=401)
-        account = get_object_or_404(models.Account, pk=account_id)
+        get_object_or_404(models.Account, pk=account_id)
         card = get_object_or_404(models.Card, pk=card_id, account_id=account_id, is_verified=True, is_deleted=False)
         # -----------------------------------------------------------------------------------------
         paid = etc.pay_by_card(card=card, amount=amount)

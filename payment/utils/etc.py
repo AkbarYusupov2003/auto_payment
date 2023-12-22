@@ -38,17 +38,8 @@ def pay_by_card(
             account = models.Account.objects.get(pk=card.account_id)
         except:
             return False
-        if subscription:
-            subscription_id = subscription.pk
-        else:
-            subscription_id = None
 
-        to_create = {
-
-        }
-        if subscription:
-            to_create["subscription_id"] = subscription.pk
-
+        subscription_id = subscription.pk if subscription else None
         receipt = models.Receipt.objects.create(
             card=card,
             status=models.Receipt.StatusChoices.CREATED,
