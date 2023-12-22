@@ -31,20 +31,38 @@ def pay_by_card(
     account_id = card.account_id
     exists = is_paycom_card_exists(card.pk, card.token) if card else False
     if exists:
+        try:
+            account = models.Account.objects.get(pk=card.account_id)
+        except:
+            return False
         if subscription:
-            receipt = models.Receipt.objects.create(
-                card=card,
-                status=models.Receipt.StatusChoices.CREATED,
-                subscription_id=subscription.pk,
-                amount=amount,
-                auto_paid=auto_paid
-            )
+            subscription_id = subscription.pk
+        else:
+            subscription_id = None
 
-        # models.Transaction.objects.create(
-        #
-        # )
-        # TODO CREATE TRANSACTION with subscription
+        to_create = {
 
+        }
+        if subscription:
+            to_create["subscription_id"] = subscription.pk
+
+        receipt = models.Receipt.objects.create(
+            card=card,
+            status=models.Receipt.StatusChoices.CREATED,
+            amount=amount,
+            auto_paid=auto_paid,
+            subscription_id=subscription_id
+        )
+        models.Transaction.objects.create(
+            transaction_id=receipt.receipt_id,
+            payment_service="payme-card",
+            amount=amount,
+            additional_parameters=card.additional_data,
+            username=account.username,
+            account_id=account.pk,
+            subscription_id=subscription_id,
+            currency=models.Transaction.CurrencyChoices.uzs
+        )
         receipt_id = receipts.create_receipt(receipt.pk, account_id, amount)
         print("RECEIPT ID", receipt_id)
         if receipt_id:
