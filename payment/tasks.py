@@ -10,7 +10,7 @@ from payment.utils import etc
 
 @shared_task(name="daily-subscription-task")
 def daily_subscription_task():
-    today = datetime.datetime.now()
+    today = datetime.datetime.today()
     models.IntermediateSubscription.objects.filter(
         Q(date_of_debiting__lt=today) | Q(date_of_debiting__isnull=True)
     ).delete()
