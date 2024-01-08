@@ -29,8 +29,7 @@ def pay_by_card(
     intermediate_subscription=None,
     auto_paid=False
 ):
-    # TODO CHECK
-    print("pay_by_card")
+    # TODO TEST
     account_id = card.account_id
     exists = is_paycom_card_exists(card.pk, card.token) if card else False
     if exists:
@@ -64,7 +63,6 @@ def pay_by_card(
             currency=models.Transaction.CurrencyChoices.uzs
         )
         receipt_id = receipts.create_receipt(receipt.pk, account_id, amount)
-        print("RECEIPT ID", receipt_id)
         if receipt_id:
             receipt.receipt_id = receipt_id
             receipt.save()

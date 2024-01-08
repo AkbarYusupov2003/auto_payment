@@ -22,7 +22,6 @@ def daily_subscription_task():
     day_after_tomorrow = models.IntermediateSubscription.objects.filter(date_of_debiting=today + datetime.timedelta(days=2))
 
     for intermediate_subscription in to_extend:
-        print("subscription", intermediate_subscription)
 
         if intermediate_subscription.subscription_type.archive:
             intermediate_subscription.delete()

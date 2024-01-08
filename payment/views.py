@@ -107,7 +107,7 @@ class CardRetrieveAPIView(APIView):
     def post(self, request, *args, **kwargs):
         try:
             account_id = int(tokens.get_data_from_token(request.META["HTTP_AUTHORIZATION"]).get("user_id"))
-            account_id = 1 # TODO REMOVE
+            # account_id = 1 # TODO REMOVE
         except:
             return Response({"error": ""}, status=401)
         # -----------------------------------------------------------------------------------------
@@ -149,7 +149,7 @@ class CardRetrieveAPIView(APIView):
         try:
             splay_data = tokens.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
             account_id = int(splay_data.get("user_id"))
-            account_id = 1  # TODO REMOVE
+            # account_id = 1  # TODO REMOVE
         except:
             return Response({"error": ""}, status=401)
         # -----------------------------------------------------------------------------------------
@@ -172,7 +172,7 @@ class RefillBalanceAPIView(APIView):
         try:
             splay_data = tokens.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
             account_id = int(splay_data.get("user_id"))
-            account_id = 1  # TODO REMOVE
+            # account_id = 1  # TODO REMOVE
         except:
             return Response({"error": ""}, status=401)
         # -----------------------------------------------------------------------------------------
@@ -203,7 +203,7 @@ class SubscriptionPaymentAPIView(APIView):
             data = json.loads(request.body)
             splay_data = tokens.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
             account_id = int(splay_data.get("user_id"))
-            account_id = 1  # TODO REMOVE
+            # account_id = 1  # TODO REMOVE
         except:
             return Response({"error": ""}, status=401)
         # -----------------------------------------------------------------------------------------
