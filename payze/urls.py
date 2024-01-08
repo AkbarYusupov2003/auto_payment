@@ -4,5 +4,5 @@ from payze import views
 
 
 urlpatterns = [
-    path("", views.TestAPIView.as_view()),
+    path("products/create", views.ProductCreateAPIView.as_view()),
 ]

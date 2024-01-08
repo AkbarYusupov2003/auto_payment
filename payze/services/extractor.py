@@ -2,14 +2,14 @@ import requests
 from django.conf import settings
 
 
-def get_data(body):
+def get_data(url, body):
     count = 1
     result = {}
 
     headers = {"Authorization": f"{settings.PAYZE_API_KEY}:{settings.PAYZE_API_SECRET}"}
     while count <= 3:
         try:
-            response = requests.post(settings.PAYCOM_API_URL, json=body, headers=headers)
+            response = requests.post(url=url, json=body, headers=headers)
             result = response.json()
             break
         except IOError as e:
