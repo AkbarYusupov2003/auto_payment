@@ -14,6 +14,10 @@ from payment.utils import data_extractor, tokens, etc
 
 
 # Move to Frontend
+TOKEN = "658437dd448046c31012c140_7ikvwpEVaY0jZQI3X7tygzIvtmGEYy4KHzjgvGkb2MHFK3u6YcWwanvqyWixXpYys2t3MGDIyGz16E5Ho5kIrkNIxG2FdTASRt5HwzCNDDbiVxdgjg21DdN4NP6SgQTwZzBxxmPCTbk636ckm9WO6OQBX4B2nddeEF3jkUrZw13B8Xh62HWsSuo98axCZhCSXK2sq48dQKj8RKIvKfAXbqWbynanPDVVgT9H9QOqeBSWipEZi6fuGYAEUtYsIP8BYsO88Hbbn55qSQz6cw3F7yePy0fe8FFHAVcqQpZkyCDQACGJwy3QuAOVTzEwXAGVMW1MDrVMsvFsd39GGxpNnxoSEI9AbGazybpA2Y8ReFh72TVpTnYazT9MxdpEdZmKOyXMnw"
+PK = 1
+
+
 class MainView(View):
     # TODO for Frontend: generate id -> from user_id...
     def get(self, request, *args, **kwargs):
@@ -30,10 +34,6 @@ class MainView(View):
         print("Main response", response)
         data = response.get("result").get("card")
         return HttpResponse(f"data: {data}")
-
-
-TOKEN = "658437dd448046c31012c140_7ikvwpEVaY0jZQI3X7tygzIvtmGEYy4KHzjgvGkb2MHFK3u6YcWwanvqyWixXpYys2t3MGDIyGz16E5Ho5kIrkNIxG2FdTASRt5HwzCNDDbiVxdgjg21DdN4NP6SgQTwZzBxxmPCTbk636ckm9WO6OQBX4B2nddeEF3jkUrZw13B8Xh62HWsSuo98axCZhCSXK2sq48dQKj8RKIvKfAXbqWbynanPDVVgT9H9QOqeBSWipEZi6fuGYAEUtYsIP8BYsO88Hbbn55qSQz6cw3F7yePy0fe8FFHAVcqQpZkyCDQACGJwy3QuAOVTzEwXAGVMW1MDrVMsvFsd39GGxpNnxoSEI9AbGazybpA2Y8ReFh72TVpTnYazT9MxdpEdZmKOyXMnw"
-PK = 1
 
 
 class CardGetVerifyCode(View):
@@ -70,8 +70,6 @@ class CardVerify(View):
 
 class CardListAPIView(generics.ListAPIView):
     serializer_class = serializers.CardListSerializer
-    authentication_classes = ()
-    permission_classes = (permissions.AllowAny,)
 
     def get_queryset(self):
         try:
@@ -83,8 +81,6 @@ class CardListAPIView(generics.ListAPIView):
 
 
 class CardCreateAPIView(APIView):
-    authentication_classes = ()
-    permission_classes = ()
 
     def post(self, request, *args, **kwargs):
         try:
@@ -101,8 +97,6 @@ class CardCreateAPIView(APIView):
 
 
 class CardRetrieveAPIView(APIView):
-    authentication_classes = ()
-    permission_classes = (permissions.AllowAny,)
 
     def post(self, request, *args, **kwargs):
         try:
@@ -166,8 +160,6 @@ class CardRetrieveAPIView(APIView):
 
 
 class RefillBalanceAPIView(APIView):
-    authentication_classes = ()
-    permission_classes = (permissions.AllowAny,)
 
     def post(self, request, *args, **kwargs):
         try:
@@ -196,15 +188,13 @@ class RefillBalanceAPIView(APIView):
 
 
 class SubscriptionPaymentAPIView(APIView):
-    authentication_classes = ()
-    permission_classes = (permissions.AllowAny,)
 
     def post(self, request, *args, **kwargs):
         try:
             data = json.loads(request.body)
             splay_data = tokens.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
             account_id = int(splay_data.get("user_id"))
-            account_id = 1  # TODO REMOVE
+            # account_id = 1  # TODO REMOVE
         except:
             return Response({"error": ""}, status=401)
         # -----------------------------------------------------------------------------------------
