@@ -26,7 +26,7 @@ def is_paycom_card_exists(card_id, token):
 def pay_by_card(
     card,
     amount,
-    subscription=None,
+    intermediate_subscription=None,
     auto_paid=False
 ):
     # TODO CHECK
@@ -39,7 +39,13 @@ def pay_by_card(
         except:
             return False
 
-        subscription_id = subscription.pk if subscription else None
+        subscription = None
+        subscription_id = None
+
+        if intermediate_subscription:
+            subscription = intermediate_subscription.subscription_type
+            subscription_id = subscription.pk
+
         receipt = models.Receipt.objects.create(
             card=card,
             status=models.Receipt.StatusChoices.CREATED,
@@ -64,7 +70,11 @@ def pay_by_card(
             receipt.save()
             paid = receipts.pay_receipt(receipt.pk, receipt_id, account_id, card.token)
             if paid:
+                receipt.status = models.Receipt.StatusChoices.PAID
+                receipt.save()
+
                 transaction.performed = True
+                transaction.transaction_id = receipt_id
                 transaction.save()
 
                 if not receipt.subscription_id:
@@ -73,11 +83,29 @@ def pay_by_card(
                     account.save()
                 else:
                     # Продление подписки
-                    if not subscription.date_of_debiting:
-                        subscription.date_of_debiting = datetime.date.today() + datetime.timedelta(days=30)
+                    additional_parameters = {
+                        "sub__id": subscription.pk,
+                        "sub__title_ru": subscription.title_ru,
+                        "transaction_id": transaction.pk,
+                        "provider_transaction_id": receipt_id,
+                    }
+                    models.Transaction.objects.create(
+                        amount=-amount,
+                        performed=True,
+                        transaction_id=receipt_id,
+                        additional_parameters=additional_parameters,
+                        payment_service="splay",
+                        username=account.username,
+                        account_id=account.pk,
+                        subscription_id=subscription_id,
+                        currency=models.Transaction.CurrencyChoices.uzs
+                    )
+
+                    if not intermediate_subscription.date_of_debiting:
+                        intermediate_subscription.date_of_debiting = datetime.date.today() + datetime.timedelta(days=30)
                     else:
-                        subscription.date_of_debiting += datetime.timedelta(days=30)
-                    subscription.save()
+                        intermediate_subscription.date_of_debiting += datetime.timedelta(days=30)
+                    intermediate_subscription.save()
 
                 receipt.status = models.Receipt.StatusChoices.PAID
                 receipt.save()

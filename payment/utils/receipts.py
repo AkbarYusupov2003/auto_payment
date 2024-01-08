@@ -20,6 +20,9 @@ def create_receipt(pk, account_id, amount):
 
 
 def pay_receipt(pk, receipt_id, account_id, token):
+    print("\n\n")
+    print("PRINTING", pk, receipt_id, account_id, token)
+    print("\n\n")
     body = {
         "id": pk,
         "method": "receipts.pay",
@@ -32,5 +35,9 @@ def pay_receipt(pk, receipt_id, account_id, token):
         }
     }
     result = data_extractor.get_data(body, secured=True) #.get("result")
+    # ["result"][""]
     print("pay_receipt", result)
-    return bool(result)
+    if result.get("result"):
+        return True
+    else:
+        return False

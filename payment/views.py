@@ -223,7 +223,7 @@ class SubscriptionPaymentAPIView(APIView):
             models.IntermediateSubscription.objects.filter(subscription_type=subscription, user_id=account_id).delete()
             instance = models.IntermediateSubscription.objects.create(subscription_type=subscription, user_id=account_id)
         # -----------------------------------------------------------------------------------------
-        paid = etc.pay_by_card(subscription=instance, card=card, amount=subscription.price)
+        paid = etc.pay_by_card(card=card, amount=subscription.price, intermediate_subscription=instance)
         if paid:
             return Response({"message": "subscription paid"}, status=200)
         else:
