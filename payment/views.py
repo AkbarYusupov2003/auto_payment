@@ -84,7 +84,7 @@ class CardListAPIView(generics.ListAPIView):
 
 class CardCreateAPIView(APIView):
     authentication_classes = ()
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = ()
 
     def post(self, request, *args, **kwargs):
         try:
@@ -122,6 +122,7 @@ class CardRetrieveAPIView(APIView):
         # -----------------------------------------------------------------------------------------
         get_object_or_404(models.Account, pk=account_id)
         card = get_object_or_404(models.Card, pk=card_id, account_id=account_id, is_deleted=False)
+
         if etc.is_paycom_card_exists(card.pk, token):
             if not card.is_verified:
                 card.token = token
@@ -203,7 +204,7 @@ class SubscriptionPaymentAPIView(APIView):
             data = json.loads(request.body)
             splay_data = tokens.get_data_from_token(request.META["HTTP_AUTHORIZATION"])
             account_id = int(splay_data.get("user_id"))
-            # account_id = 1  # TODO REMOVE
+            account_id = 1  # TODO REMOVE
         except:
             return Response({"error": ""}, status=401)
         # -----------------------------------------------------------------------------------------
