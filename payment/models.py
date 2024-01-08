@@ -61,6 +61,7 @@ class Transaction(models.Model):
         ('splay', "Splay"),
         ('payme', "Payme"),
         ("payme-card", "Payme Card"),
+        ("payze-card", "Payze Card"),
         ('click', "Click"),
         ('apelsin', "Apelsin"),
         ('paynet', "Paynet"),

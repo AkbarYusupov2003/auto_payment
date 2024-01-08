@@ -10,6 +10,7 @@ from rest_framework import generics, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from payment.models import Transaction
 from payze import models
 from payze import serializers
 from payze.services import extractor
@@ -50,7 +51,6 @@ class PaymentCreateAPIView(View):
         #     "numberOfFailedRetry": 1
         # }
         response = extractor.put_data(url, body)
-        print("RESPONSE", response)
         return HttpResponse("Ok")
 
 
@@ -63,18 +63,25 @@ class PaymentWebhookGateway(View):
     def post(self, request, *args, **kwargs):
         print("Webhook Gateway: ", request.body)
         payze_response = json.loads(request.body)
-        transaction_id = payze_response.get("paymentId")
-        amount = payze_response.get("amount")
+        transaction_id = payze_response.get("PaymentId")
+        amount = payze_response.get("Amount")
         print("amount", amount, type(amount))
         if transaction_id and amount:
             print("IN IF")
             url = "https://payze.io/v2/api/payment/capture"
+            # payze-card
             body = {
                 "transactionId": transaction_id,
                 "amount": amount
             }
             res = extractor.put_data(url, body)
-            print("res", res)
+            Transaction.objects.create(
+                amount=amount,
+                additional_parameters={},
+                payment_service="payze-card",
+                performed=True
+
+            )
         return HttpResponse("Webhook gateway")
 
 

@@ -41,6 +41,7 @@ def put_data(url, body):
     while count <= 3:
         try:
             response = requests.put(url=url, json=body, headers=headers)
+            print("response", response.status_code, response.text)
             result = response.json()
             break
         except IOError as e:
