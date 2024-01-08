@@ -16,8 +16,22 @@ from payze.services import extractor
 class ProductCreateAPIView(View):
 
     def get(self, request, *args, **kwargs):
-        url = "https://payze.io/v2/api/product"
-
+        # url = "https://payze.io/v2/api/product"
+        #
+        # body = {
+        #     "name": "Активация",
+        #     "description": "Активация",
+        #     "imageUrl": "",
+        #     "price": "35000",
+        #     "currency": "UZS",
+        #     "occurrenceType": "Day",
+        #     "occurrenceNumber": "30",
+        #     "occurrenceDuration": "1",
+        #     "freeTrial": 0,
+        #     "numberOfFailedRetry": 1
+        # }
+        url = "https://payze.io/v2/api/products?Id=3104"
+        # 3104 - Setanta, 3105 - Активация
         body = {
             "name": "Активация",
             "description": "Активация",
@@ -30,6 +44,6 @@ class ProductCreateAPIView(View):
             "freeTrial": 0,
             "numberOfFailedRetry": 1
         }
-        response = extractor.get_data(url, body)
+        response = extractor.get_data(url, {})
         print("RESPONSE", response)
         return HttpResponse("Ok")
