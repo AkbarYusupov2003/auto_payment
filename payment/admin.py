@@ -20,7 +20,7 @@ class ReceiptAdmin(admin.ModelAdmin):
 @admin.register(models.Transaction)
 class TransactionAdmin(admin.ModelAdmin):
     list_display = ('account_id', 'username', 'get_amount', 'currency', 'payment_service', 'subscription_id', 'create_time', 'performed', 'transaction_id')
-    list_display_links = "username",
+    list_display_links = "transaction_id",
     list_filter = ('performed', 'payment_service', 'currency',)
     search_fields = ('username',)
     ordering = ['-create_time']

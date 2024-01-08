@@ -1,8 +1,5 @@
-import re
 import json
-import datetime
-from django.db.models import F
-from django.shortcuts import HttpResponse, get_object_or_404
+from django.shortcuts import HttpResponse, redirect, get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
@@ -18,7 +15,7 @@ from payze.services import extractor
 
 # 3104 - Setanta, 3105 - Активация
 
-HOST = "https://b2d0-195-158-24-116.ngrok-free.app"
+HOST = "https://b9ab-195-158-24-116.ngrok-free.app"
 
 
 # Payment
@@ -26,32 +23,35 @@ class PaymentCreateAPIView(View):
 
     def get(self, request, *args, **kwargs):
         url = "https://payze.io/v2/api/payment"
+        amount = 1000
         body = {
             "source": "Card",
-            "amount": "1",
-            "currency": "USD",
+            "amount": amount,
+            "currency": "UZS",
             "language": "RU",
             "hooks": {
                 "webhookGateway": f"{HOST}/payze/payment/webhook",
                 "successRedirectGateway": f"{HOST}/payze/payment/success",
                 "errorRedirectGateway": f"{HOST}/payze/payment/error",
             },
-
+            "cardPayment": {
+                "tokenizeCard": True
+            }
         }
-        # body = {
-        #     "name": "Активация",
-        #     "description": "Активация",
-        #     "imageUrl": "",
-        #     "price": "35000",
-        #     "currency": "UZS",
-        #     "occurrenceType": "Day",
-        #     "occurrenceNumber": "30",
-        #     "occurrenceDuration": "1",
-        #     "freeTrial": 0,
-        #     "numberOfFailedRetry": 1
-        # }
-        response = extractor.put_data(url, body)
-        return HttpResponse("Ok")
+        payze_response = extractor.put_data(url, body).get("data").get("payment")
+        Transaction.objects.create(
+            # TODO create with more fields
+            amount=amount,
+            transaction_id=payze_response.get("transactionId"),
+            additional_parameters={
+                "payment_id": payze_response.get("id"),
+                "token": payze_response.get("token")
+            },
+            payment_service="payze-card",
+            performed=False
+        )
+        to_url = payze_response.get("paymentUrl")
+        return redirect(to_url)
 
 
 class PaymentWebhookGateway(View):
@@ -63,25 +63,11 @@ class PaymentWebhookGateway(View):
     def post(self, request, *args, **kwargs):
         print("Webhook Gateway: ", request.body)
         payze_response = json.loads(request.body)
-        transaction_id = payze_response.get("PaymentId")
-        amount = payze_response.get("Amount")
-        print("amount", amount, type(amount))
-        if transaction_id and amount:
-            print("IN IF")
-            url = "https://payze.io/v2/api/payment/capture"
-            # payze-card
-            body = {
-                "transactionId": transaction_id,
-                "amount": amount
-            }
-            res = extractor.put_data(url, body)
-            Transaction.objects.create(
-                amount=amount,
-                additional_parameters={},
-                payment_service="payze-card",
-                performed=True
-
-            )
+        transaction = get_object_or_404(
+            Transaction, transaction_id=payze_response.get("PaymentId")
+        )
+        transaction.performed = True
+        transaction.save()
         return HttpResponse("Webhook gateway")
 
 
@@ -95,7 +81,7 @@ class PaymentSuccessRedirectGateway(APIView):
 class PaymentErrorRedirectGateway(APIView):
 
     def get(self, request, *args, **kwargs):
-
+        print("Error Gateway: ", request.body)
         return HttpResponse("Error redirect gateway")
 
 
