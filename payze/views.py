@@ -15,7 +15,7 @@ from payze.services import extractor
 
 # 3104 - Setanta, 3105 - Активация
 
-HOST = "https://b9ab-195-158-24-116.ngrok-free.app"
+HOST = "https://70e6-195-158-24-116.ngrok-free.app"
 
 
 # Payment
@@ -45,7 +45,7 @@ class PaymentCreateAPIView(View):
             transaction_id=payze_response.get("transactionId"),
             additional_parameters={
                 "payment_id": payze_response.get("id"),
-                "token": payze_response.get("token")
+                "token": payze_response.get("cardPayment").get("token")
             },
             payment_service="payze-card",
             performed=False
@@ -61,7 +61,7 @@ class PaymentWebhookGateway(View):
         return super().dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        print("Webhook Gateway: ", request.body)
+        print("Payment Webhook Gateway: ", request.body)
         payze_response = json.loads(request.body)
         transaction = get_object_or_404(
             Transaction, transaction_id=payze_response.get("PaymentId")
@@ -114,14 +114,27 @@ class SubscriptionCreateAPIView(APIView):
         url = "https://payze.io/v2/api/subscription"
         body = {
             "productId": 3105,
-            "cardToken": "PAY123ZE...",
-            "hookUrl": "https://payze.io",
-            "email": "info@payze.ge",
-            "phone": "+995...",
-            "callback": "https://payze.io",
-            "callbackError": "https://payze.io/error",
-            "sendEmails": False
+            "cardToken": "DF460D7C60934D4497E2B08B2",
+            "hookUrl": f"{HOST}/payze/subscriptions/webhook",
+            "email": "akbarbek.yusupov@gmail.com",
+            #"phone": "+995...",
+            #"callback": f"{HOST}/payze/success/webhook",
+            #"callbackError": f"{HOST}/payze/error/webhook",
+            #"sendEmails": False
         }
         response = extractor.post_data(url, body)
         print("RESPONSE", response)
         return HttpResponse("Ok")
+
+
+class SubscriptionWebhookAPIViewGateway(APIView):
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        print("Subscription Webhook Gateway: ", request.body)
+        payze_response = json.loads(request.body)
+        # TODO Create transaction for paid subscription
+        return HttpResponse("Webhook gateway")

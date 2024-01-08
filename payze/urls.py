@@ -18,4 +18,6 @@ urlpatterns = [
     # Subscriptions
     path("subscriptions/create", views.SubscriptionCreateAPIView.as_view()),
     path("subscriptions/", views.SubscriptionCreateAPIView.as_view()),
+    # hooks
+    path("subscriptions/webhook", views.SubscriptionWebhookAPIViewGateway.as_view()),
 ]
