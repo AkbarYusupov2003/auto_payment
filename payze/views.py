@@ -15,7 +15,7 @@ from payze.services import extractor
 
 # 3104 - Setanta, 3105 - Активация
 
-HOST = "https://70e6-195-158-24-116.ngrok-free.app"
+HOST = "https://fa4c-195-158-24-116.ngrok-free.app"
 
 
 # Payment
@@ -114,7 +114,7 @@ class SubscriptionCreateAPIView(APIView):
         url = "https://payze.io/v2/api/subscription"
         body = {
             "productId": 3105,
-            "cardToken": "DF460D7C60934D4497E2B08B2",
+            "cardToken": "89EAC3569B8A4632AFB2372BA",
             "hookUrl": f"{HOST}/payze/subscriptions/webhook",
             "email": "akbarbek.yusupov@gmail.com",
             #"phone": "+995...",
