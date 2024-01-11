@@ -15,7 +15,7 @@ from payze.services import extractor
 
 # 3104 - Setanta, 3105 - Активация
 
-HOST = "https://fa4c-195-158-24-116.ngrok-free.app"
+HOST = "https://26d8-195-158-24-116.ngrok-free.app"
 
 
 # Payment
@@ -23,7 +23,7 @@ class PaymentCreateAPIView(View):
 
     def get(self, request, *args, **kwargs):
         url = "https://payze.io/v2/api/payment"
-        amount = 1000
+        amount = 0
         body = {
             "source": "Card",
             "amount": amount,
@@ -94,7 +94,7 @@ class ProductCreateAPIView(View):
             "name": "Активация",
             "description": "Активация",
             "imageUrl": "",
-            "price": "35000",
+            "price": "10",
             "currency": "UZS",
             "occurrenceType": "Day",
             "occurrenceNumber": "30",
@@ -113,8 +113,8 @@ class SubscriptionCreateAPIView(APIView):
     def get(self, request, *args, **kwargs):
         url = "https://payze.io/v2/api/subscription"
         body = {
-            "productId": 3105,
-            "cardToken": "89EAC3569B8A4632AFB2372BA",
+            "productId": 3111,
+            "cardToken": "",
             "hookUrl": f"{HOST}/payze/subscriptions/webhook",
             "email": "akbarbek.yusupov@gmail.com",
             #"phone": "+995...",
@@ -138,3 +138,24 @@ class SubscriptionWebhookAPIViewGateway(APIView):
         payze_response = json.loads(request.body)
         # TODO Create transaction for paid subscription
         return HttpResponse("Webhook gateway")
+
+
+class GetProductAPIView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        url = "https://payze.io/v2/api/products"
+        body = {
+            "productId": 3111,
+            "cardToken": "",
+            "hookUrl": f"{HOST}/payze/subscriptions/webhook",
+            "email": "akbarbek.yusupov@gmail.com",
+
+            # "phone": "+995...",
+            # "callback": f"{HOST}/payze/success/webhook",
+            # "callbackError": f"{HOST}/payze/error/webhook",
+            # "sendEmails": False
+        }
+        response = extractor.get_data(url, body)
+        print("RESPONSE", response)
+        return HttpResponse("Ok")
+# 3110
