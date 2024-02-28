@@ -53,7 +53,7 @@ class PaymentCreateAPIView(View):
                             "productCode": "10302001005000000", # ?
                             # "productBarCode": "",
                             # "productLabel": "",
-                            "packageCode": "1500533", # ?
+                            "packageCode": "1500531", # ?
                             "productQuantity": 1,
                             "price": amount,
                             "sumPrice": amount,
@@ -119,7 +119,7 @@ def get_payments():
     if response:
         response = response.get("data").get("value")
         if response:
-            print("response", response)
+            print("response", response[0]["receipt"])
 
 
 def get_payment_receipt():
