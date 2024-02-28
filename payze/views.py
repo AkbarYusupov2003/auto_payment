@@ -45,7 +45,7 @@ class PaymentCreateAPIView(View):
                         {
                             "uzRegulatoryOrderItem": {
                                 # "commissionInfoPinfl": "",
-                                "commissionInfoTin": settings.TIN,
+                                "commissionInfoTin": settings.PAYZE_API_TIN,
                             },
                             # "productLink": "https://google.com",
                             # "productImage": "https://google.com/image",
@@ -112,7 +112,7 @@ class PaymentWebhookGateway(View):
 
 def get_payments():
     print("get_payments")
-    transaction_id = "3FA7CF586DED42D69C2127926"
+    transaction_id = "62CBA5D0D6CC4C4F8BBD94057"
     url = f"https://payze.io/v2/api/payment/query/token-based?$filter=transactionId%20eq%20%27{transaction_id}%27"
     body = {}
     response = extractor.get_data(url, body)
