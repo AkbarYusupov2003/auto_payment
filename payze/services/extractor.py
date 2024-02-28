@@ -6,7 +6,8 @@ def get_data(url, body):
     count = 1
     result = {}
 
-    headers = {"Authorization": f"{settings.PAYZE_API_KEY}:{settings.PAYZE_API_SECRET}"}
+    # headers = {"Authorization": f"{settings.PAYZE_API_KEY}:{settings.PAYZE_API_SECRET}"}
+    headers = {"Authorization": f"{settings.PAYZE_API_PROD_KEY}:{settings.PAYZE_API_PROD_SECRET}"}
     while count <= 3:
         try:
             response = requests.get(url=url, json=body, headers=headers)
@@ -21,7 +22,8 @@ def post_data(url, body):
     count = 1
     result = {}
 
-    headers = {"Authorization": f"{settings.PAYZE_API_KEY}:{settings.PAYZE_API_SECRET}"}
+    # headers = {"Authorization": f"{settings.PAYZE_API_KEY}:{settings.PAYZE_API_SECRET}"}
+    headers = {"Authorization": f"{settings.PAYZE_API_PROD_KEY}:{settings.PAYZE_API_PROD_SECRET}"}
     while count <= 3:
         try:
             response = requests.post(url=url, json=body, headers=headers)
@@ -37,7 +39,8 @@ def put_data(url, body):
     count = 1
     result = {}
 
-    headers = {"Authorization": f"{settings.PAYZE_API_KEY}:{settings.PAYZE_API_SECRET}"}
+    # headers = {"Authorization": f"{settings.PAYZE_API_KEY}:{settings.PAYZE_API_SECRET}"}
+    headers = {"Authorization": f"{settings.PAYZE_API_PROD_KEY}:{settings.PAYZE_API_PROD_SECRET}"}
     while count <= 3:
         try:
             response = requests.put(url=url, json=body, headers=headers)

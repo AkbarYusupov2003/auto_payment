@@ -1,4 +1,5 @@
 import json
+from django.conf import settings
 from django.shortcuts import HttpResponse, redirect, get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -15,7 +16,7 @@ from payze.services import extractor
 
 # 3104 - Setanta, 3105 - Активация
 
-HOST = "https://26d8-195-158-24-116.ngrok-free.app"
+HOST = "https://6bb2-195-158-24-116.ngrok-free.app"
 
 
 # Payment
@@ -23,7 +24,7 @@ class PaymentCreateAPIView(View):
 
     def get(self, request, *args, **kwargs):
         url = "https://payze.io/v2/api/payment"
-        amount = 0
+        amount = 100
         body = {
             "source": "Card",
             "amount": amount,
@@ -34,18 +35,56 @@ class PaymentCreateAPIView(View):
                 "successRedirectGateway": f"{HOST}/payze/payment/success",
                 "errorRedirectGateway": f"{HOST}/payze/payment/error",
             },
-            "cardPayment": {
-                "tokenizeCard": True
-            }
+            # "cardPayment": {
+            #     "tokenizeCard": True
+            # }
+            "metadata": {
+                "order": {
+                    "orderId": "3",
+                    "orderItems": [
+                        {
+                            "uzRegulatoryOrderItem": {
+                                # "commissionInfoPinfl": "",
+                                "commissionInfoTin": settings.TIN,
+                            },
+                            # "productLink": "https://google.com",
+                            # "productImage": "https://google.com/image",
+                            "productName": "Subscription Name", # subscription name
+                            "productCode": "10302001005000000", # ?
+                            # "productBarCode": "",
+                            # "productLabel": "",
+                            "packageCode": "1500533", # ?
+                            "productQuantity": 1,
+                            "price": amount,
+                            "sumPrice": amount,
+                            "vat": 0,
+                            "vatPercent": 0,
+                            # "discount": 0,
+                            # "additionalDiscount": 0,
+                        }
+                    ],
+                    "billingAddress": {
+                        "phoneNumber": settings.PHONE_NUMBER,
+                    },
+                    "extraAttributes": [
+                        {
+                            "key": "RECEIPT_TYPE",
+                            "value": "Sale",
+                            "description": "OFD Receipt type"
+                        }
+                    ]
+                }
+            },
         }
         payze_response = extractor.put_data(url, body).get("data").get("payment")
+        # after req do get_payments
         Transaction.objects.create(
             # TODO create with more fields
             amount=amount,
             transaction_id=payze_response.get("transactionId"),
             additional_parameters={
                 "payment_id": payze_response.get("id"),
-                "token": payze_response.get("cardPayment").get("token")
+                "token": "off" # payze_response.get("cardPayment").get("token")
             },
             payment_service="payze-card",
             performed=False
@@ -69,6 +108,27 @@ class PaymentWebhookGateway(View):
         transaction.performed = True
         transaction.save()
         return HttpResponse("Webhook gateway")
+
+
+def get_payments():
+    print("get_payments")
+    transaction_id = "3FA7CF586DED42D69C2127926"
+    url = f"https://payze.io/v2/api/payment/query/token-based?$filter=transactionId%20eq%20%27{transaction_id}%27"
+    body = {}
+    response = extractor.get_data(url, body)
+    if response:
+        response = response.get("data").get("value")
+        if response:
+            print("response", response)
+
+
+def get_payment_receipt():
+    print("get_payment_receipt")
+    transaction_id = ""
+    url = f"https://payze.io/v2/api/payment/receipt?TransactionId={transaction_id}"
+    body = {}
+    response = extractor.get_data(url, body)
+    print("response", response)
 
 
 class PaymentSuccessRedirectGateway(APIView):
